@@ -9,6 +9,7 @@ public:
 	HealthUI(glm::vec3 &entityPos, GLuint entityTexture, GLuint backgroundTexture, GLint entityNumElements, GameObject &ref);
 
 	void render(Shader &shader);
+	void update(double deltaTime);
 private:
 	GameObject &obj;
 	GLuint backgroundSegment;

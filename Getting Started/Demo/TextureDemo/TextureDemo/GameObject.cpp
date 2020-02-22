@@ -23,6 +23,8 @@ GameObject::GameObject(glm::vec3 &entityPosition, GLuint entityTexture, GLint en
 	isAlive = true;
 	isFriendly = false;
 	objectSize = 1.0f;
+	maxHealth = 5;
+	health = maxHealth;
 }
 
 void GameObject::changeDirection(double diff) {
@@ -56,6 +58,13 @@ void GameObject::transform(Shader &shader) {
 	// Set the transformation matrix in the shader
 	glm::mat4 transformationMatrix = translationMatrix * rotationMatrix * scaleMatrix;
 	shader.setUniformMat4("transformationMatrix", transformationMatrix);
+}
+
+void GameObject::damage()
+{
+	health--;
+	if (health <= 0)
+		kill();
 }
 
 // Renders the GameObject using the shader

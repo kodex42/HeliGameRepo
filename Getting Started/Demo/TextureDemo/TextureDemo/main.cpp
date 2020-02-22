@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <algorithm>
 #define GLEW_STATIC
 #include <GL/glew.h> // window management library
 #include <GL/glfw3.h>
@@ -16,10 +17,13 @@
 #include "PlayerGameObject.h"
 #include "UIObject.h"
 #include "HealthUI.h"
+#include "ProjectileGameObject.h"
 
 #define NUM_GAME_OBJECTS 3
 #define NUM_UI_TEXTURES 2
-#define NUM_OBJECTS NUM_GAME_OBJECTS + NUM_UI_TEXTURES
+#define NUM_WEAPON_TEXTURES 2
+#define NUM_BULLET_TEXTURES 1
+#define NUM_OBJECTS NUM_GAME_OBJECTS + NUM_UI_TEXTURES + NUM_WEAPON_TEXTURES + NUM_BULLET_TEXTURES
 
 // Macro for printing exceptions
 #define PrintException(exception_object)\
@@ -29,14 +33,14 @@
 const std::string window_title_g = "Transform Demo";
 const unsigned int window_width_g = 800;
 const unsigned int window_height_g = 600;
-const glm::vec3 viewport_background_color_g(0.0, 0.0, 0.0);
+const glm::vec3 viewport_background_color_g(1.0, 1.0, 1.0);
 
 // Global texture info
 GLuint tex[NUM_OBJECTS];
 
 // Global game object info
 std::vector<GameObject*> gameObjects;
-std::vector<UIObject*> uiObjects;
+std::vector<UIObject*> healthBars;
 
 // Create the geometry for a square (with two triangles)
 // Return the number of array elements that form the square
@@ -106,6 +110,9 @@ void setallTexture(void)
 	setthisTexture(tex[2], "rock.png");
 	setthisTexture(tex[3], "healthBarSegment.png");
 	setthisTexture(tex[4], "healthBarMissingSegment.png");
+	setthisTexture(tex[5], "machineGun.png");
+	setthisTexture(tex[6], "rockets.png");
+	setthisTexture(tex[7], "bullet.png");
 
 	glBindTexture(GL_TEXTURE_2D, tex[0]);
 }
@@ -127,14 +134,8 @@ void setup(void)
 	setallTexture();
 
 	std::vector<GLuint*> extraTextures;
-	GLuint* machineGunTex = new GLuint();
-	glGenTextures(1, machineGunTex);
-	setthisTexture(*machineGunTex, "machineGun.png");
-	GLuint* rocketLauncherTex = new GLuint();
-	glGenTextures(1, rocketLauncherTex);
-	setthisTexture(*rocketLauncherTex, "rockets.png");
-	extraTextures.push_back(machineGunTex);
-	extraTextures.push_back(rocketLauncherTex);
+	extraTextures.push_back(new GLuint(tex[5]));
+	extraTextures.push_back(new GLuint(tex[6]));
 	// Setup the player object (position, texture, vertex count)
 	PlayerGameObject* player = new PlayerGameObject(glm::vec3(0.0f, 0.0f, 0.0f), tex[0], size, extraTextures);
 	// Note, player object should always be the first object in the game object vector 
@@ -145,7 +146,14 @@ void setup(void)
 	gameObjects.push_back(new GameObject(glm::vec3(1.0f, -0.5f, 0.0f), tex[2], size));
 
 	// Setup UI objects
-	uiObjects.push_back(new HealthUI(gameObjects[0]->getPosition(), tex[3], tex[4], size, *(gameObjects[0])));
+	healthBars.push_back(new HealthUI(gameObjects[0]->getPosition(), tex[3], tex[4], size, *(gameObjects[0])));
+	healthBars.push_back(new HealthUI(gameObjects[1]->getPosition(), tex[3], tex[4], size, *(gameObjects[1])));
+	healthBars.push_back(new HealthUI(gameObjects[2]->getPosition(), tex[3], tex[4], size, *(gameObjects[2])));
+}
+
+void shoot(Weapon* w, glm::vec3 startingPos, double dx, double dy) {
+	w->lastTimeShot = glfwGetTime();
+	gameObjects.push_back(new ProjectileGameObject(startingPos, tex[7], 6, *w, dx, dy));
 }
 
 void controls(void)
@@ -196,17 +204,24 @@ void controls(void)
 	}
 
 	// SHOOTING: Can only shoot in 4 cardinal directions
-	if (glfwGetKey(Window::getWindow(), GLFW_KEY_RIGHT) == GLFW_PRESS) {
-		
-	}
-	if (glfwGetKey(Window::getWindow(), GLFW_KEY_UP) == GLFW_PRESS) {
-		
-	}
-	if (glfwGetKey(Window::getWindow(), GLFW_KEY_LEFT) == GLFW_PRESS) {
-		
-	}
-	if (glfwGetKey(Window::getWindow(), GLFW_KEY_DOWN) == GLFW_PRESS) {
-		
+	Weapon* w = player->getEquippedWeapon();
+	if (w->lastTimeShot + w->cooldown < glfwGetTime()) {
+		if (glfwGetKey(Window::getWindow(), GLFW_KEY_RIGHT) == GLFW_PRESS) {
+			player->setAimAngle(0);
+			shoot(w, player->getPosition() + glm::vec3(0.5f, -0.2f, 0), 1, 0);
+		}
+		else if (glfwGetKey(Window::getWindow(), GLFW_KEY_UP) == GLFW_PRESS) {
+			player->setAimAngle(90);
+			shoot(w, player->getPosition() + glm::vec3(0.05f, 0.5f, 0), 0, 1);
+		}
+		else if (glfwGetKey(Window::getWindow(), GLFW_KEY_LEFT) == GLFW_PRESS) {
+			player->setAimAngle(180);
+			shoot(w, player->getPosition() + glm::vec3(-0.5f, -0.2f, 0), -1, 0);
+		}
+		else if (glfwGetKey(Window::getWindow(), GLFW_KEY_DOWN) == GLFW_PRESS) {
+			player->setAimAngle(270);
+			shoot(w, player->getPosition() + glm::vec3(0.05f, -0.5f, 0), 0, -1);
+		}
 	}
 }
 
@@ -216,19 +231,27 @@ void gameLoop(Window &window, Shader &shader, double deltaTime)
 	window.clear(viewport_background_color_g);
 
 	// Render UI
-	glm::mat4 UIMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.25, 0.25, 0.25));
+	/*glm::mat4 UIMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.25, 0.25, 0.25));
 	shader.setUniformMat4("viewMatrix", UIMatrix);
 	for (int i = 0; i < uiObjects.size(); i++) {
 		UIObject *obj = uiObjects[i];
 		if (obj->getIsAlive())
 			obj->render(shader);
-	}
+	}*/
 
 	// set view to zoom out, centred by default at 0,0
 	float cameraZoom = 0.25f;
 	glm::mat4 viewMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(cameraZoom, cameraZoom, cameraZoom));
 	viewMatrix = glm::translate(viewMatrix, -(gameObjects[0]->getPosition()));
 	shader.setUniformMat4("viewMatrix", viewMatrix);
+
+	for (int i = 0; i < healthBars.size(); i++) {
+		UIObject *obj = healthBars[i];
+		if (obj->getIsAlive()) {
+			obj->update(deltaTime);
+			obj->render(shader);
+		}
+	}
 
 	// apply user input
 	controls();
@@ -246,8 +269,12 @@ void gameLoop(Window &window, Shader &shader, double deltaTime)
 		for (int j = i + 1; j < gameObjects.size(); j++) {
 			GameObject* otherGameObject = gameObjects[j];
 
-			float distance = glm::length(currentGameObject->getPosition() - otherGameObject->getPosition());
-			if (distance < 0.75f) {
+			glm::vec3 pos1 = currentGameObject->getPosition();
+			glm::vec3 pos2 = otherGameObject->getPosition();
+			float rad1 = currentGameObject->getSize() / 2;
+			float rad2 = otherGameObject->getSize() / 2;
+			float breadth = 0.2f;
+			if (pow((pos2.x - pos1.x), 2) + pow((pos2.y - pos1.y), 2) <= pow((rad1 + rad2), 2) - breadth) {
 				if (currentGameObject->getIsFriendly() != otherGameObject->getIsFriendly()) {
 					currentGameObject->damage();
 					otherGameObject->damage();
@@ -264,6 +291,9 @@ void gameLoop(Window &window, Shader &shader, double deltaTime)
 
 	// Push buffer drawn in the background onto the display
 	glfwSwapBuffers(window.getWindow());
+
+	gameObjects.erase(std::remove_if(gameObjects.begin(), gameObjects.end(), [](GameObject* obj) {return !obj->getIsAlive(); }), gameObjects.end());
+	healthBars.erase(std::remove_if(healthBars.begin(), healthBars.end(), [](UIObject* obj) {return !obj->getIsAlive(); }), healthBars.end());
 
 	// Is the player dead?
 	if (!gameObjects[0]->getIsAlive())

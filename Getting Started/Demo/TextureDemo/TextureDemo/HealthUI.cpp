@@ -5,6 +5,11 @@ HealthUI::HealthUI(glm::vec3 &entityPos, GLuint entityTexture, GLuint background
 	objectSize = 0.25f;
 }
 
+void HealthUI::update(double deltaTime) {
+	if (!obj.getIsAlive()) kill();
+	position = obj.getPosition();
+}
+
 void HealthUI::render(Shader &shader) {
 	// Setup the transformation matrix for the shader
 	glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), position)

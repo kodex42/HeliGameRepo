@@ -24,9 +24,9 @@ PlayerGameObject::PlayerGameObject(glm::vec3 &entityPos, GLuint entityTexture, G
 	weapons = new std::vector<Weapon*>();
 
 	// Setup weapons
-	// { lifeSpan, weight, fireRate, speed, radius, name }
-	Weapon machineGun = { -1.0f, 0.0f, 2.0f, 2.0f, 0.1f, "machineGun" };
-	Weapon rockets = { 2.0f, 0.1f, 0.5f, 1.0f, 0.75f, "rockets" };
+	// { lifeSpan, weight, cooldown, speed, radius, lastTimeShot, name }
+	Weapon machineGun = { -1.0f, 0.0f, 0.5f, 4.0f, 0.1f, 0.0f, "machineGun", true };
+	Weapon rockets = { 1.8f, 0.1f, 2.5f, 3.5f, 0.75f, 0.0f, "rockets", true };
 	//Weapon scudMissles	= { 2.0f, 1.0f, 0.75f, 0.5f, 0.5f, "scudMissles" };
 	//Weapon laser		= { 3.0f, 0.0f, 0.1f, -1.0f, 0.15, "laser" };
 	// Give the player these weapons
@@ -96,15 +96,16 @@ void PlayerGameObject::update(double deltaTime) {
 
 void PlayerGameObject::render(Shader &shader) {
 	// Setup the transformation matrix for the shader
-	glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), position);
-	glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), (float)(angle - 90), glm::vec3(0, 0, 1));
-	glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(objectSize, objectSize, 1));
-	glm::mat4 damageOffset = glm::translate(glm::mat4(1.0f), glm::vec3(cos(glfwGetTime() * 50) / 50, 0, 0));
+	glm::mat4 playerTranslationMatrix = glm::translate(glm::mat4(1.0f), position);
+	glm::mat4 playerRotationMatrix = glm::rotate(glm::mat4(1.0f), (float)(angle - 90), glm::vec3(0, 0, 1));
+	glm::mat4 playerScaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(objectSize, objectSize, 1));
+	glm::mat4 playerDamageOffset = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
 	
-	glm::mat4 transformationMatrix = translationMatrix * rotationMatrix * scaleMatrix;
 	if (lastDamageTime + DAMAGE_I_TIME > glfwGetTime()) {
-		transformationMatrix = damageOffset * transformationMatrix;
+		playerDamageOffset = glm::translate(glm::mat4(1.0f), glm::vec3(cos(glfwGetTime() * 50) / 50, 0, 0));
 	}
+
+	glm::mat4 playerTransformation = playerDamageOffset * playerTranslationMatrix * playerRotationMatrix * playerScaleMatrix;
 
 	// ---------- DRAW WEAPON ----------
 	if (numWeapons > 0) {
@@ -113,11 +114,16 @@ void PlayerGameObject::render(Shader &shader) {
 		if (equipped->name == "rockets") texIndex = 1;
 
 		// Weapon transformations
-
+		glm::mat4 weaponTranslation = glm::translate(glm::mat4(1.0f), glm::vec3(0.3f, -0.2f, 0));
+		glm::mat4 weaponRotation = glm::translate(glm::mat4(1.0f), glm::vec3(-0.25f, 0, 0)) // Translate away from axle
+			* glm::rotate(glm::mat4(1.0f), (float)(aimAngle), glm::vec3(0, 0, 1)) // Aiming angle
+			* glm::translate(glm::mat4(1.0f), glm::vec3(0.25f, 0, 0)); // Translate to axle
+		glm::mat4 weaponScale = glm::scale(glm::mat4(1.0f), glm::vec3(0.8f, 0.7f, 0));
+		glm::mat4 weaponTransformation = playerDamageOffset * playerTranslationMatrix * weaponTranslation * weaponRotation * weaponScale;
 
 		// Bind the entities texture
 		glBindTexture(GL_TEXTURE_2D, *extraTextures[texIndex]);
-		shader.setUniformMat4("transformationMatrix", transformationMatrix);
+		shader.setUniformMat4("transformationMatrix", weaponTransformation);
 		// Draw the entity
 		glDrawElements(GL_TRIANGLES, numElements, GL_UNSIGNED_INT, 0);
 	}
@@ -125,7 +131,7 @@ void PlayerGameObject::render(Shader &shader) {
 	// ---------- DRAW PLAYER ----------
 	// Bind the entities texture
 	glBindTexture(GL_TEXTURE_2D, texture);
-	shader.setUniformMat4("transformationMatrix", transformationMatrix);
+	shader.setUniformMat4("transformationMatrix", playerTransformation);
 	// Draw the entity
 	glDrawElements(GL_TRIANGLES, numElements, GL_UNSIGNED_INT, 0);
 }

@@ -41,9 +41,10 @@ public:
 	inline void setPosition(glm::vec3 &newPosition) { position = newPosition; }
 	inline void setVelocity(glm::vec3 &newVelocity) { velocity = newVelocity; }
 	inline void setAcceleration(glm::vec3 &newAcceleration) { acceleration = newAcceleration; }
-	virtual inline void damage() { health -= 1; }
+	inline void setAimAngle(double angle) { aimAngle = angle; }
 	virtual inline void kill() { isAlive = false; }
 	virtual inline void revive() { isAlive = true; }
+	virtual void damage();
 protected:
 	// Object's Transform Variables
 	// TODO: Add more transformation variables
