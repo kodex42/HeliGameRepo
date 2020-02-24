@@ -10,6 +10,11 @@
 #include "Shader.h"
 #include "utils.h"
 
+#define MIN_SPEED -2
+#define MAX_SPEED 2
+#define MIN_SIZE 0.5
+#define MAX_SIZE 1.0
+
 class GameObject {
 public:
 	GameObject(glm::vec3 &entityPosition, GLuint entityTexture, GLint entityNumElements);
@@ -36,6 +41,7 @@ public:
 	inline double getAimAngle() { return aimAngle; }
 	inline bool getIsAlive() { return isAlive; }
 	inline bool getIsFriendly() { return isFriendly; }
+	bool isDamaged();
 
 	// Setters
 	inline void setPosition(glm::vec3 &newPosition) { position = newPosition; }
@@ -60,6 +66,8 @@ protected:
 	float maxHealth;
 	float health;
 	float objectSize;
+	float damageInvincibiltyTime;
+	float lastDamageTime;
 	double angle;
 	double aimAngle;
 	double speed;

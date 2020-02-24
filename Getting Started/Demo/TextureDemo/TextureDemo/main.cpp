@@ -21,7 +21,7 @@
 
 #define NUM_GAME_OBJECTS 3
 #define NUM_UI_TEXTURES 2
-#define NUM_WEAPON_TEXTURES 2
+#define NUM_WEAPON_TEXTURES 3
 #define NUM_BULLET_TEXTURES 1
 #define NUM_OBJECTS NUM_GAME_OBJECTS + NUM_UI_TEXTURES + NUM_WEAPON_TEXTURES + NUM_BULLET_TEXTURES
 
@@ -105,16 +105,19 @@ void setallTexture(void)
 {
 //	tex = new GLuint[4];
 	glGenTextures(NUM_OBJECTS, tex);
-	setthisTexture(tex[0], "orb.png");
+	setthisTexture(tex[0], "player.png");
 	setthisTexture(tex[1], "saw.png");
 	setthisTexture(tex[2], "rock.png");
 	setthisTexture(tex[3], "healthBarSegment.png");
 	setthisTexture(tex[4], "healthBarMissingSegment.png");
-	setthisTexture(tex[5], "machineGun.png");
-	setthisTexture(tex[6], "rockets.png");
-	setthisTexture(tex[7], "bullet.png");
+	setthisTexture(tex[5], "bullet.png");
+	setthisTexture(tex[6], "explosion.png");
+	setthisTexture(tex[7], "machineGun.png");
+	setthisTexture(tex[8], "rockets.png");
+	setthisTexture(tex[9], "machineGun.png");
+	setthisTexture(tex[10], "propellor.png");
 
-	glBindTexture(GL_TEXTURE_2D, tex[0]);
+	//glBindTexture(GL_TEXTURE_2D, tex[0]);
 }
 
 void setup(void)
@@ -134,8 +137,10 @@ void setup(void)
 	setallTexture();
 
 	std::vector<GLuint*> extraTextures;
-	extraTextures.push_back(new GLuint(tex[5]));
-	extraTextures.push_back(new GLuint(tex[6]));
+	extraTextures.push_back(new GLuint(tex[7])); // Machine Gun Texture
+	extraTextures.push_back(new GLuint(tex[8])); // Rocket Launcher Texture
+	extraTextures.push_back(new GLuint(tex[9])); // Scud Missle Launcher Texture
+	extraTextures.push_back(new GLuint(tex[10])); // Propellor
 	// Setup the player object (position, texture, vertex count)
 	PlayerGameObject* player = new PlayerGameObject(glm::vec3(0.0f, 0.0f, 0.0f), tex[0], size, extraTextures);
 	// Note, player object should always be the first object in the game object vector 
@@ -153,7 +158,7 @@ void setup(void)
 
 void shoot(Weapon* w, glm::vec3 startingPos, double dx, double dy) {
 	w->lastTimeShot = glfwGetTime();
-	gameObjects.push_back(new ProjectileGameObject(startingPos, tex[7], 6, *w, dx, dy));
+	gameObjects.push_back(new ProjectileGameObject(startingPos, tex[5], 6, *w, dx, dy, tex[6]));
 }
 
 void controls(void)
@@ -204,24 +209,33 @@ void controls(void)
 	}
 
 	// SHOOTING: Can only shoot in 4 cardinal directions
+	double dir = -1;
+	if (glfwGetKey(Window::getWindow(), GLFW_KEY_RIGHT) == GLFW_PRESS) {
+		dir = 0;
+	}
+	else if (glfwGetKey(Window::getWindow(), GLFW_KEY_UP) == GLFW_PRESS) {
+		dir = 90;
+	}
+	else if (glfwGetKey(Window::getWindow(), GLFW_KEY_LEFT) == GLFW_PRESS) {
+		dir = 180;
+	}
+	else if (glfwGetKey(Window::getWindow(), GLFW_KEY_DOWN) == GLFW_PRESS) {
+		dir = 270;
+	}
+	if (dir != -1) {
+		player->setAimAngle(dir);
+	}
+
 	Weapon* w = player->getEquippedWeapon();
-	if (w->lastTimeShot + w->cooldown < glfwGetTime()) {
-		if (glfwGetKey(Window::getWindow(), GLFW_KEY_RIGHT) == GLFW_PRESS) {
-			player->setAimAngle(0);
+	if (w->lastTimeShot + w->cooldown < glfwGetTime() && dir != -1) {
+		if (dir == 0)
 			shoot(w, player->getPosition() + glm::vec3(0.5f, -0.2f, 0), 1, 0);
-		}
-		else if (glfwGetKey(Window::getWindow(), GLFW_KEY_UP) == GLFW_PRESS) {
-			player->setAimAngle(90);
+		else if (dir == 90)
 			shoot(w, player->getPosition() + glm::vec3(0.05f, 0.5f, 0), 0, 1);
-		}
-		else if (glfwGetKey(Window::getWindow(), GLFW_KEY_LEFT) == GLFW_PRESS) {
-			player->setAimAngle(180);
+		else if (dir == 180)
 			shoot(w, player->getPosition() + glm::vec3(-0.5f, -0.2f, 0), -1, 0);
-		}
-		else if (glfwGetKey(Window::getWindow(), GLFW_KEY_DOWN) == GLFW_PRESS) {
-			player->setAimAngle(270);
+		else if (dir == 270)
 			shoot(w, player->getPosition() + glm::vec3(0.05f, -0.5f, 0), 0, -1);
-		}
 	}
 }
 
@@ -275,7 +289,8 @@ void gameLoop(Window &window, Shader &shader, double deltaTime)
 			float rad2 = otherGameObject->getSize() / 2;
 			float breadth = 0.2f;
 			if (pow((pos2.x - pos1.x), 2) + pow((pos2.y - pos1.y), 2) <= pow((rad1 + rad2), 2) - breadth) {
-				if (currentGameObject->getIsFriendly() != otherGameObject->getIsFriendly()) {
+				if (currentGameObject->getIsFriendly() != otherGameObject->getIsFriendly()
+					&& !currentGameObject->isDamaged() && !otherGameObject->isDamaged()) {
 					currentGameObject->damage();
 					otherGameObject->damage();
 				}
@@ -292,12 +307,13 @@ void gameLoop(Window &window, Shader &shader, double deltaTime)
 	// Push buffer drawn in the background onto the display
 	glfwSwapBuffers(window.getWindow());
 
-	gameObjects.erase(std::remove_if(gameObjects.begin(), gameObjects.end(), [](GameObject* obj) {return !obj->getIsAlive(); }), gameObjects.end());
-	healthBars.erase(std::remove_if(healthBars.begin(), healthBars.end(), [](UIObject* obj) {return !obj->getIsAlive(); }), healthBars.end());
-
 	// Is the player dead?
 	if (!gameObjects[0]->getIsAlive())
 		exit(0);
+
+	// Remove dead objects from each vector
+	gameObjects.erase(std::remove_if(gameObjects.begin(), gameObjects.end(), [](GameObject* obj) {return !obj->getIsAlive(); }), gameObjects.end());
+	healthBars.erase(std::remove_if(healthBars.begin(), healthBars.end(), [](UIObject* obj) {return !obj->getIsAlive(); }), healthBars.end());
 }
 
 // Main function that builds and runs the game

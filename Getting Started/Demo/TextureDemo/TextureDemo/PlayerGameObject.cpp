@@ -1,19 +1,11 @@
 #include "PlayerGameObject.h"
 
-#define MAX_VEL_X 3
-#define MIN_VEL_X -3
-#define MAX_VEL_Y 3
-#define MIN_VEL_Y -3
-#define FRICTION 0.1f
-#define DAMAGE_I_TIME 3
-
 /*
 	PlayerGameObject inherits from GameObject
 	It overrides GameObject's update method, so that you can check for input to change the velocity of the player
 
 */
 
-double PlayerGameObject::lastDamageTime = -DAMAGE_I_TIME;
 int PlayerGameObject::numWeapons = 0;
 
 PlayerGameObject::PlayerGameObject(glm::vec3 &entityPos, GLuint entityTexture, GLint entityNumElements, std::vector<GLuint*> extraTextures)
@@ -22,45 +14,42 @@ PlayerGameObject::PlayerGameObject(glm::vec3 &entityPos, GLuint entityTexture, G
 	health = maxHealth;
 	isFriendly = true;
 	weapons = new std::vector<Weapon*>();
+	damageInvincibiltyTime = 2.0f;
+	lastDamageTime = -damageInvincibiltyTime;
 
 	// Setup weapons
-	// { lifeSpan, weight, cooldown, speed, radius, lastTimeShot, name }
+	numWeapons = 0;
+	// { lifeSpan, weight, cooldown, speed, radius, lastTimeShot, name, isFriendly }
 	Weapon machineGun = { -1.0f, 0.0f, 0.5f, 4.0f, 0.1f, 0.0f, "machineGun", true };
-	Weapon rockets = { 1.8f, 0.1f, 2.5f, 3.5f, 0.75f, 0.0f, "rockets", true };
-	//Weapon scudMissles	= { 2.0f, 1.0f, 0.75f, 0.5f, 0.5f, "scudMissles" };
-	//Weapon laser		= { 3.0f, 0.0f, 0.1f, -1.0f, 0.15, "laser" };
+	Weapon rockets = { 1.0f, 0.1f, 2.5f, 3.5f, 1.0f, 0.0f, "rockets", true };
+	Weapon scudMissles	= { 1.8f, 3.0f, 5.0f, 0.5f, 1.5f, 0.0f, "scudMissles", true };
+	//Weapon laser		= { 3.0f, 0.0f, 20.0f, -1.0f, 0.15f, 0.0f, "laser", true };
 	// Give the player these weapons
 	giveWeapon(machineGun);
 	giveWeapon(rockets);
-	//giveWeapon(scudMissles);
+	giveWeapon(scudMissles);
 	//giveWeapon(laser);
 	equip(0);
-
-	numWeapons = 2;
 }
 
-PlayerGameObject::~PlayerGameObject()
-{
+PlayerGameObject::~PlayerGameObject() {
 	for (int i = 0; i < numWeapons; i++)
 		delete (*weapons)[i];
 	delete weapons;
 }
 
-void PlayerGameObject::giveWeapon(Weapon& weap)
-{
+void PlayerGameObject::giveWeapon(Weapon& weap) {
 	Weapon* ptr = new Weapon(weap);
 	weapons->push_back(ptr);
 	numWeapons++;
 }
 
-void PlayerGameObject::changeAcceleration(glm::vec3 newAcceleration)
-{
+void PlayerGameObject::changeAcceleration(glm::vec3 newAcceleration) {
 	setAcceleration(newAcceleration);
 	speed = 1.0f;
 }
 
-void PlayerGameObject::equip(int index)
-{
+void PlayerGameObject::equip(int index) {
 	if (index >= 0 && index < numWeapons) {
 		equipped = (*weapons)[index];
 	}
@@ -96,22 +85,24 @@ void PlayerGameObject::update(double deltaTime) {
 
 void PlayerGameObject::render(Shader &shader) {
 	// Setup the transformation matrix for the shader
-	glm::mat4 playerTranslationMatrix = glm::translate(glm::mat4(1.0f), position);
-	glm::mat4 playerRotationMatrix = glm::rotate(glm::mat4(1.0f), (float)(angle - 90), glm::vec3(0, 0, 1));
-	glm::mat4 playerScaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(objectSize, objectSize, 1));
+	glm::mat4 playerTranslation = glm::translate(glm::mat4(1.0f), position);
+	glm::mat4 playerRotation = glm::rotate(glm::mat4(1.0f), (float)(angle), glm::vec3(0, 0, 1))
+		* glm::rotate(glm::mat4(1.0f), aimAngle == 180 ? 180.0f : 0.0f, glm::vec3(0, 1, 0));
+	glm::mat4 playerScale = glm::scale(glm::mat4(1.0f), glm::vec3(objectSize, objectSize, 1));
 	glm::mat4 playerDamageOffset = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
 	
-	if (lastDamageTime + DAMAGE_I_TIME > glfwGetTime()) {
+	if (lastDamageTime + damageInvincibiltyTime > glfwGetTime()) {
 		playerDamageOffset = glm::translate(glm::mat4(1.0f), glm::vec3(cos(glfwGetTime() * 50) / 50, 0, 0));
 	}
 
-	glm::mat4 playerTransformation = playerDamageOffset * playerTranslationMatrix * playerRotationMatrix * playerScaleMatrix;
+	glm::mat4 playerTransformation = playerDamageOffset * playerTranslation * playerRotation * playerScale;
 
 	// ---------- DRAW WEAPON ----------
 	if (numWeapons > 0) {
 		int texIndex = 0;
 		if (equipped->name == "machineGun") texIndex = 0;
 		if (equipped->name == "rockets") texIndex = 1;
+		if (equipped->name == "scudMissles") texIndex = 2;
 
 		// Weapon transformations
 		glm::mat4 weaponTranslation = glm::translate(glm::mat4(1.0f), glm::vec3(0.3f, -0.2f, 0));
@@ -119,7 +110,7 @@ void PlayerGameObject::render(Shader &shader) {
 			* glm::rotate(glm::mat4(1.0f), (float)(aimAngle), glm::vec3(0, 0, 1)) // Aiming angle
 			* glm::translate(glm::mat4(1.0f), glm::vec3(0.25f, 0, 0)); // Translate to axle
 		glm::mat4 weaponScale = glm::scale(glm::mat4(1.0f), glm::vec3(0.8f, 0.7f, 0));
-		glm::mat4 weaponTransformation = playerDamageOffset * playerTranslationMatrix * weaponTranslation * weaponRotation * weaponScale;
+		glm::mat4 weaponTransformation = playerDamageOffset * playerTranslation * weaponTranslation * weaponRotation * weaponScale;
 
 		// Bind the entities texture
 		glBindTexture(GL_TEXTURE_2D, *extraTextures[texIndex]);
@@ -134,12 +125,16 @@ void PlayerGameObject::render(Shader &shader) {
 	shader.setUniformMat4("transformationMatrix", playerTransformation);
 	// Draw the entity
 	glDrawElements(GL_TRIANGLES, numElements, GL_UNSIGNED_INT, 0);
-}
 
-void PlayerGameObject::damage() {
-	if (lastDamageTime + DAMAGE_I_TIME < glfwGetTime()) {
-		lastDamageTime = glfwGetTime();
-		health -= 1;
-		if (health <= 0) kill();
-	}
+	// ---------- DRAW PROPELLOR ----------
+	glm::mat4 propellorTranslation = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0.6f, 0));
+	glm::mat4 propellorRotation = glm::rotate(glm::mat4(1.0f), (float)fmod(glfwGetTime()*1000, 360), glm::vec3(0, 1, 0));
+	glm::mat4 propellorScale = glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 1.0f));
+	glm::mat4 propellorTransformation = playerTransformation * propellorTranslation * propellorRotation * propellorScale;
+
+	// Bind the entities texture
+	glBindTexture(GL_TEXTURE_2D, *extraTextures[3]);
+	shader.setUniformMat4("transformationMatrix", propellorTransformation);
+	// Draw the entity
+	glDrawElements(GL_TRIANGLES, numElements, GL_UNSIGNED_INT, 0);
 }
