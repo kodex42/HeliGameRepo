@@ -1,10 +1,5 @@
 #include "GameObject.h"
 
-#define MIN_SPEED -2
-#define MAX_SPEED 2
-#define MIN_SIZE 0.5
-#define MAX_SIZE 1.0
-
 /*
 	GameObject is responsible for handling the rendering and updating of objects in the game world
 	The update method is virtual, so you can inherit from GameObject and override the update functionality (see PlayerGameObject for reference)
@@ -25,6 +20,8 @@ GameObject::GameObject(glm::vec3 &entityPosition, GLuint entityTexture, GLint en
 	objectSize = 1.0f;
 	maxHealth = 5;
 	health = maxHealth;
+	damageInvincibiltyTime = 0.1f;
+	lastDamageTime = -damageInvincibiltyTime;
 }
 
 void GameObject::changeDirection(double diff) {
@@ -62,9 +59,11 @@ void GameObject::transform(Shader &shader) {
 
 void GameObject::damage()
 {
-	health--;
-	if (health <= 0)
-		kill();
+	if (lastDamageTime + damageInvincibiltyTime < glfwGetTime()) {
+		lastDamageTime = glfwGetTime();
+		health -= 1;
+		if (health <= 0) kill();
+	}
 }
 
 // Renders the GameObject using the shader

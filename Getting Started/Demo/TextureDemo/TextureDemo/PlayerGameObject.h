@@ -2,6 +2,12 @@
 
 #include "GameObject.h"
 
+#define MAX_VEL_X 3
+#define MIN_VEL_X -3
+#define MAX_VEL_Y 3
+#define MIN_VEL_Y -3
+#define FRICTION 0.1f
+
 // Inherits from GameObject
 class PlayerGameObject : public GameObject {
 public:
@@ -11,7 +17,6 @@ public:
 	// Overrides
 	void update(double deltaTime);
 	void render(Shader &shader);
-	void damage();
 
 	// Getters
 	inline Weapon* getEquippedWeapon() { return equipped; }
@@ -24,7 +29,6 @@ public:
 	void equip(int index);
 
 	// Static data members
-	static double lastDamageTime;
 	static int numWeapons;
 private:
 	// Weapons

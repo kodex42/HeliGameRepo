@@ -1,19 +1,11 @@
 #include "PlayerGameObject.h"
 
-#define MAX_VEL_X 3
-#define MIN_VEL_X -3
-#define MAX_VEL_Y 3
-#define MIN_VEL_Y -3
-#define FRICTION 0.1f
-#define DAMAGE_I_TIME 3
-
 /*
 	PlayerGameObject inherits from GameObject
 	It overrides GameObject's update method, so that you can check for input to change the velocity of the player
 
 */
 
-double PlayerGameObject::lastDamageTime = -DAMAGE_I_TIME;
 int PlayerGameObject::numWeapons = 0;
 
 PlayerGameObject::PlayerGameObject(glm::vec3 &entityPos, GLuint entityTexture, GLint entityNumElements, std::vector<GLuint*> extraTextures)
@@ -22,21 +14,22 @@ PlayerGameObject::PlayerGameObject(glm::vec3 &entityPos, GLuint entityTexture, G
 	health = maxHealth;
 	isFriendly = true;
 	weapons = new std::vector<Weapon*>();
+	damageInvincibiltyTime = 2.0f;
+	lastDamageTime = -damageInvincibiltyTime;
 
 	// Setup weapons
+	numWeapons = 0;
 	// { lifeSpan, weight, cooldown, speed, radius, lastTimeShot, name }
 	Weapon machineGun = { -1.0f, 0.0f, 0.5f, 4.0f, 0.1f, 0.0f, "machineGun", true };
 	Weapon rockets = { 1.8f, 0.1f, 2.5f, 3.5f, 0.75f, 0.0f, "rockets", true };
-	//Weapon scudMissles	= { 2.0f, 1.0f, 0.75f, 0.5f, 0.5f, "scudMissles" };
+	Weapon scudMissles	= { 1.8f, 1.0f, 5.0f, 1.5f, 1.0f, 0.0f, "scudMissles", true };
 	//Weapon laser		= { 3.0f, 0.0f, 0.1f, -1.0f, 0.15, "laser" };
 	// Give the player these weapons
 	giveWeapon(machineGun);
 	giveWeapon(rockets);
-	//giveWeapon(scudMissles);
+	giveWeapon(scudMissles);
 	//giveWeapon(laser);
 	equip(0);
-
-	numWeapons = 2;
 }
 
 PlayerGameObject::~PlayerGameObject()
@@ -101,7 +94,7 @@ void PlayerGameObject::render(Shader &shader) {
 	glm::mat4 playerScaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(objectSize, objectSize, 1));
 	glm::mat4 playerDamageOffset = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
 	
-	if (lastDamageTime + DAMAGE_I_TIME > glfwGetTime()) {
+	if (lastDamageTime + damageInvincibiltyTime > glfwGetTime()) {
 		playerDamageOffset = glm::translate(glm::mat4(1.0f), glm::vec3(cos(glfwGetTime() * 50) / 50, 0, 0));
 	}
 
@@ -134,12 +127,4 @@ void PlayerGameObject::render(Shader &shader) {
 	shader.setUniformMat4("transformationMatrix", playerTransformation);
 	// Draw the entity
 	glDrawElements(GL_TRIANGLES, numElements, GL_UNSIGNED_INT, 0);
-}
-
-void PlayerGameObject::damage() {
-	if (lastDamageTime + DAMAGE_I_TIME < glfwGetTime()) {
-		lastDamageTime = glfwGetTime();
-		health -= 1;
-		if (health <= 0) kill();
-	}
 }

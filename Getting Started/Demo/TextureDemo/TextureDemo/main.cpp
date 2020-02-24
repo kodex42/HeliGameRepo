@@ -21,7 +21,7 @@
 
 #define NUM_GAME_OBJECTS 3
 #define NUM_UI_TEXTURES 2
-#define NUM_WEAPON_TEXTURES 2
+#define NUM_WEAPON_TEXTURES 3
 #define NUM_BULLET_TEXTURES 1
 #define NUM_OBJECTS NUM_GAME_OBJECTS + NUM_UI_TEXTURES + NUM_WEAPON_TEXTURES + NUM_BULLET_TEXTURES
 
@@ -110,9 +110,11 @@ void setallTexture(void)
 	setthisTexture(tex[2], "rock.png");
 	setthisTexture(tex[3], "healthBarSegment.png");
 	setthisTexture(tex[4], "healthBarMissingSegment.png");
-	setthisTexture(tex[5], "machineGun.png");
-	setthisTexture(tex[6], "rockets.png");
-	setthisTexture(tex[7], "bullet.png");
+	setthisTexture(tex[5], "bullet.png");
+	setthisTexture(tex[6], "explosion.png");
+	setthisTexture(tex[7], "machineGun.png");
+	setthisTexture(tex[8], "rockets.png");
+	setthisTexture(tex[9], "rockets.png");
 
 	glBindTexture(GL_TEXTURE_2D, tex[0]);
 }
@@ -134,8 +136,9 @@ void setup(void)
 	setallTexture();
 
 	std::vector<GLuint*> extraTextures;
-	extraTextures.push_back(new GLuint(tex[5]));
-	extraTextures.push_back(new GLuint(tex[6]));
+	extraTextures.push_back(new GLuint(tex[7])); // Machine Gun Texture
+	extraTextures.push_back(new GLuint(tex[8])); // Rocket Launcher Texture
+	extraTextures.push_back(new GLuint(tex[9])); // Scud Missle Launcher Texture
 	// Setup the player object (position, texture, vertex count)
 	PlayerGameObject* player = new PlayerGameObject(glm::vec3(0.0f, 0.0f, 0.0f), tex[0], size, extraTextures);
 	// Note, player object should always be the first object in the game object vector 
@@ -153,7 +156,7 @@ void setup(void)
 
 void shoot(Weapon* w, glm::vec3 startingPos, double dx, double dy) {
 	w->lastTimeShot = glfwGetTime();
-	gameObjects.push_back(new ProjectileGameObject(startingPos, tex[7], 6, *w, dx, dy));
+	gameObjects.push_back(new ProjectileGameObject(startingPos, tex[5], 6, *w, dx, dy, tex[6]));
 }
 
 void controls(void)
