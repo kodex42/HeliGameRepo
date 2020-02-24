@@ -57,9 +57,14 @@ void GameObject::transform(Shader &shader) {
 	shader.setUniformMat4("transformationMatrix", transformationMatrix);
 }
 
+bool GameObject::isDamaged()
+{
+	return lastDamageTime + damageInvincibiltyTime >= glfwGetTime();
+}
+
 void GameObject::damage()
 {
-	if (lastDamageTime + damageInvincibiltyTime < glfwGetTime()) {
+	if (!isDamaged()) {
 		lastDamageTime = glfwGetTime();
 		health -= 1;
 		if (health <= 0) kill();

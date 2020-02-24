@@ -41,6 +41,7 @@ public:
 	inline double getAimAngle() { return aimAngle; }
 	inline bool getIsAlive() { return isAlive; }
 	inline bool getIsFriendly() { return isFriendly; }
+	bool isDamaged();
 
 	// Setters
 	inline void setPosition(glm::vec3 &newPosition) { position = newPosition; }

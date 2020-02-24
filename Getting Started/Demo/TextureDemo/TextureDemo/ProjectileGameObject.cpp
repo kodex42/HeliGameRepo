@@ -14,7 +14,7 @@ ProjectileGameObject::ProjectileGameObject(glm::vec3 & entityPos, GLuint entityT
 
 void ProjectileGameObject::update(double deltaTime) {
 	if (isExploding) {
-		objectSize += 2*deltaTime;
+		objectSize += 3*deltaTime;
 		velocity = glm::vec3(0, 0, 0);
 		acceleration = glm::vec3(0, 0, 0);
 		if (objectSize >= firedFrom.radius)
@@ -45,6 +45,10 @@ void ProjectileGameObject::damage() {
 }
 
 void ProjectileGameObject::kill() {
-	isExploding = true;
-	texture = explosion;
+	if (speed != -1) {
+		isExploding = true;
+		texture = explosion;
+	} else {
+		GameObject::kill();
+	}
 }
