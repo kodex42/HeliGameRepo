@@ -155,17 +155,21 @@ void setup(void)
 	// Note, player object should always be the first object in the game object vector 
 	gameObjects.push_back(player);
 	
+	// Setup other objects
+	//**Add new enemies by modifying the 'buildMap' function below and through editing the text file called 'map1'**
+	/*
+	gameObjects.push_back(new GameObject(glm::vec3(-1.0f, 1.0f, 0.0f), tex[1], size));
+	gameObjects.push_back(new GameObject(glm::vec3(1.0f, -0.5f, 0.0f), tex[2], size));
+	*/
+
 	//Builds the first map
 	buildMap("map1.txt");
 	
-	// Setup other objects
-	gameObjects.push_back(new GameObject(glm::vec3(-1.0f, 1.0f, 0.0f), tex[1], size));
-	gameObjects.push_back(new GameObject(glm::vec3(1.0f, -0.5f, 0.0f), tex[2], size));
+	//Set up UI objects
+	for (int i = 0; i < gameObjects.size(); i++) {
+		healthBars.push_back(new HealthUI(gameObjects[i]->getPosition(), tex[3], tex[4], size, *(gameObjects[i])));
+	}
 
-	// Setup UI objects
-	healthBars.push_back(new HealthUI(gameObjects[0]->getPosition(), tex[3], tex[4], size, *(gameObjects[0])));
-	healthBars.push_back(new HealthUI(gameObjects[1]->getPosition(), tex[3], tex[4], size, *(gameObjects[1])));
-	healthBars.push_back(new HealthUI(gameObjects[2]->getPosition(), tex[3], tex[4], size, *(gameObjects[2])));
 }
 
 void shoot(Weapon* w, glm::vec3 startingPos, double dx, double dy) {
@@ -360,6 +364,10 @@ void buildMap(std::string map)
 				}
 				else if (line[i] == 'O') {
 					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[12], 6, 0));
+				}
+				else if (line[i] == 'E') {
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[12], 6, 0));
+					gameObjects.push_back(new GameObject(glm::vec3(len, hei, 0.0f), tex[1], 6));
 				}
 			}
 			j++;
