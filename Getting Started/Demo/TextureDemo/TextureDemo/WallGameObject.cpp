@@ -7,9 +7,10 @@ WallGameObject::WallGameObject(glm::vec3& entityPos, GLuint entityTexture, GLint
 //Wall type 0 is floor
 //Wall type 1 is invincible wall
 //Wall type 2 is destructable wall (not yet implemented)
+//Wall type 3 for portal
 
 void WallGameObject::update(double deltaTime) {
-	//No updates needed!
+	//Nothing yet
 }
 
 void WallGameObject::render(Shader& shader) {
@@ -19,11 +20,5 @@ void WallGameObject::render(Shader& shader) {
 void WallGameObject::damage() {
 	if (wallType == 2) {
 		GameObject::damage();
-	}
-}
-
-void WallGameObject::kill() {
-	if (wallType == 2) {
-		GameObject::kill();
 	}
 }

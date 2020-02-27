@@ -158,11 +158,13 @@
     <ClCompile Include="FileUtils.cpp" />
     <ClCompile Include="ProjectileGameObject.cpp" />
     <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="VortexGameObject.cpp" />
     <ClCompile Include="WallGameObject.cpp" />
     <ClCompile Include="UIObject.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="VortexGameObject.h" />
     <ClInclude Include="HealthUI.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="PlayerGameObject.h" />

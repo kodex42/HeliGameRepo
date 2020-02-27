@@ -22,6 +22,7 @@ public:
 	// Change the speed and bearing of the object
 	void changeDirection(double diff);
 	void changeSpeed(double diff);
+	virtual char * pickUp();
 
 	// Updates the GameObject's state. Can be overriden for children
 	virtual void update(double deltaTime);
@@ -47,6 +48,8 @@ public:
 	inline void setPosition(glm::vec3 &newPosition) { position = newPosition; }
 	inline void setVelocity(glm::vec3 &newVelocity) { velocity = newVelocity; }
 	inline void setAcceleration(glm::vec3 &newAcceleration) { acceleration = newAcceleration; }
+	inline void setFriendly() { isFriendly = true; }
+	inline void setHostile() { isFriendly = false; }
 	inline void setAimAngle(double angle) { aimAngle = angle; }
 	virtual inline void kill() { isAlive = false; }
 	virtual inline void revive() { isAlive = true; }

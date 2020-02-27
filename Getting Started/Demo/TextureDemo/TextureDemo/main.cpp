@@ -20,12 +20,13 @@
 #include "HealthUI.h"
 #include "ProjectileGameObject.h"
 #include "WallGameObject.h"
+#include "VortexGameObject.h"
 
 #define NUM_GAME_OBJECTS 3
 #define NUM_UI_TEXTURES 2
 #define NUM_WEAPON_TEXTURES 3
 #define NUM_BULLET_TEXTURES 1
-#define NUM_WALL_TEXTURES 2
+#define NUM_WALL_TEXTURES 3
 #define NUM_OBJECTS NUM_GAME_OBJECTS + NUM_UI_TEXTURES + NUM_WEAPON_TEXTURES + NUM_BULLET_TEXTURES + NUM_WALL_TEXTURES
 
 // Macro for printing exceptions
@@ -37,9 +38,13 @@ const std::string window_title_g = "Transform Demo";
 const unsigned int window_width_g = 800;
 const unsigned int window_height_g = 600;
 const glm::vec3 viewport_background_color_g(1.0, 1.0, 1.0);
+int currentStage = 0;
 
 // Allows system to build a map based on inputted text file
 void buildMap(std::string map);
+
+// Allows the transition to the next level from making contact with the portal
+void nextLevel();
 
 // Global texture info
 GLuint tex[NUM_OBJECTS];
@@ -125,6 +130,7 @@ void setallTexture(void)
 	setthisTexture(tex[10], "propellor.png");
 	setthisTexture(tex[11], "cobbleWall.png");
 	setthisTexture(tex[12], "metalWall.png");
+	setthisTexture(tex[13], "vortex.png");
 
 	//glBindTexture(GL_TEXTURE_2D, tex[0]);
 }
@@ -169,7 +175,6 @@ void setup(void)
 	for (int i = 0; i < gameObjects.size(); i++) {
 		healthBars.push_back(new HealthUI(gameObjects[i]->getPosition(), tex[3], tex[4], size, *(gameObjects[i])));
 	}
-
 }
 
 void shoot(Weapon* w, glm::vec3 startingPos, double dx, double dy) {
@@ -294,7 +299,6 @@ void gameLoop(Window &window, Shader &shader, double deltaTime)
 		// Update game objects
 		currentGameObject->update(deltaTime);
 
-
 		// Check for collision between game objects
 		for (int j = i + 1; j < gameObjects.size(); j++) {
 			GameObject* otherGameObject = gameObjects[j];
@@ -309,6 +313,15 @@ void gameLoop(Window &window, Shader &shader, double deltaTime)
 					&& !currentGameObject->isDamaged() && !otherGameObject->isDamaged()) {
 					currentGameObject->damage();
 					otherGameObject->damage();
+				}
+
+				if (otherGameObject->getIsFriendly() && (i == 0)) {
+					char * touched = otherGameObject->pickUp();
+					std::cout << "Touched " << touched << std::endl;
+
+					if (strcmp("vortex", touched) == 0) {
+						nextLevel();
+					}
 				}
 			}
 		}
@@ -341,6 +354,11 @@ void gameLoop(Window &window, Shader &shader, double deltaTime)
 	// Remove dead objects from each vector
 	gameObjects.erase(std::remove_if(gameObjects.begin(), gameObjects.end(), [](GameObject* obj) {return !obj->getIsAlive(); }), gameObjects.end());
 	healthBars.erase(std::remove_if(healthBars.begin(), healthBars.end(), [](UIObject* obj) {return !obj->getIsAlive(); }), healthBars.end());
+	MapObjects.erase(std::remove_if(MapObjects.begin(), MapObjects.end(), [](GameObject* obj) {return !obj->getIsAlive(); }), MapObjects.end());
+
+	/*if (MapObjects.size() == 0) {
+		nextLevel();
+	}*/
 }
 
 void buildMap(std::string map)
@@ -372,12 +390,29 @@ void buildMap(std::string map)
 					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[12], 6, 0));
 					gameObjects.push_back(new GameObject(glm::vec3(len, hei, 0.0f), tex[1], 6));
 				}
+				else if (line[i] == 'T') {
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[12], 6, 0));
+					gameObjects.push_back(new VortexGameObject(glm::vec3(len, hei, 0.0f), tex[13], 6));
+				}
 			}
 			j++;
 		}
 		myfile.close();
 	}
 	else std::cout << "Unable to open MAP file";
+}
+
+void nextLevel() {
+	for (int i = 0; i < MapObjects.size(); i++) {
+		MapObjects[i]->kill();
+	}
+	for (int i = 1; i < gameObjects.size(); i++) {
+		gameObjects[i]->kill();
+	}
+	buildMap("map2.txt");
+	for (int i = 0; i < gameObjects.size(); i++) {
+		healthBars.push_back(new HealthUI(gameObjects[i]->getPosition(), tex[3], tex[4], 6, *(gameObjects[i])));
+	}
 }
 
 // Main function that builds and runs the game
