@@ -345,6 +345,9 @@ void gameLoop(Window &window, Shader &shader, double deltaTime)
 
 void buildMap(std::string map)
 {
+	//Add a dummy to the map to reset the render for it (prevents a glitch)
+	MapObjects.push_back(new WallGameObject(glm::vec3(-5.0f, 5.0f, 0.0f), tex[11], 6, 1));
+
 	std::string line;
 	std::ifstream myfile(map);
 	int j = 0;
