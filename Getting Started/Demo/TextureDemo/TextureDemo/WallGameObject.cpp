@@ -4,6 +4,7 @@ WallGameObject::WallGameObject(glm::vec3& entityPos, GLuint entityTexture, GLint
 	wallType = type;
 }
 
+//Wall type 0 is floor
 //Wall type 1 is invincible wall
 //Wall type 2 is destructable wall (not yet implemented)
 

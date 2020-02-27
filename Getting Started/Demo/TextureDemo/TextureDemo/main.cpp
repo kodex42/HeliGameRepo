@@ -355,11 +355,11 @@ void buildMap(std::string map)
 					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[11], 6, 1));
 				}
 				else if (line[i] == 'S') {
-					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[12], 6, 1));
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[12], 6, 0));
 					gameObjects[0]->setPosition(glm::vec3(len, hei, 0.0f));
 				}
 				else if (line[i] == 'O') {
-					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[12], 6, 1));
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[12], 6, 0));
 				}
 			}
 			j++;
