@@ -11,6 +11,7 @@
 #include <SOIL/SOIL.h> // read image file
 #include <chrono>
 #include <thread>
+#include <fstream>
 
 #include "Shader.h"
 #include "Window.h"
@@ -18,12 +19,14 @@
 #include "UIObject.h"
 #include "HealthUI.h"
 #include "ProjectileGameObject.h"
+#include "WallGameObject.h"
 
 #define NUM_GAME_OBJECTS 3
 #define NUM_UI_TEXTURES 2
 #define NUM_WEAPON_TEXTURES 3
 #define NUM_BULLET_TEXTURES 1
-#define NUM_OBJECTS NUM_GAME_OBJECTS + NUM_UI_TEXTURES + NUM_WEAPON_TEXTURES + NUM_BULLET_TEXTURES
+#define NUM_WALL_TEXTURES 2
+#define NUM_OBJECTS NUM_GAME_OBJECTS + NUM_UI_TEXTURES + NUM_WEAPON_TEXTURES + NUM_BULLET_TEXTURES + NUM_WALL_TEXTURES
 
 // Macro for printing exceptions
 #define PrintException(exception_object)\
@@ -35,12 +38,16 @@ const unsigned int window_width_g = 800;
 const unsigned int window_height_g = 600;
 const glm::vec3 viewport_background_color_g(1.0, 1.0, 1.0);
 
+// Allows system to build a map based on inputted text file
+void buildMap(std::string map);
+
 // Global texture info
 GLuint tex[NUM_OBJECTS];
 
 // Global game object info
 std::vector<GameObject*> gameObjects;
 std::vector<UIObject*> healthBars;
+std::vector<GameObject*> MapObjects;
 
 // Create the geometry for a square (with two triangles)
 // Return the number of array elements that form the square
@@ -116,6 +123,8 @@ void setallTexture(void)
 	setthisTexture(tex[8], "rockets.png");
 	setthisTexture(tex[9], "machineGun.png");
 	setthisTexture(tex[10], "propellor.png");
+	setthisTexture(tex[11], "cobbleWall.png");
+	setthisTexture(tex[12], "metalWall.png");
 
 	//glBindTexture(GL_TEXTURE_2D, tex[0]);
 }
@@ -145,7 +154,10 @@ void setup(void)
 	PlayerGameObject* player = new PlayerGameObject(glm::vec3(0.0f, 0.0f, 0.0f), tex[0], size, extraTextures);
 	// Note, player object should always be the first object in the game object vector 
 	gameObjects.push_back(player);
-
+	
+	//Builds the first map
+	buildMap("map1.txt");
+	
 	// Setup other objects
 	gameObjects.push_back(new GameObject(glm::vec3(-1.0f, 1.0f, 0.0f), tex[1], size));
 	gameObjects.push_back(new GameObject(glm::vec3(1.0f, -0.5f, 0.0f), tex[2], size));
@@ -254,7 +266,7 @@ void gameLoop(Window &window, Shader &shader, double deltaTime)
 	}*/
 
 	// set view to zoom out, centred by default at 0,0
-	float cameraZoom = 0.25f;
+	float cameraZoom = 0.15f;
 	glm::mat4 viewMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(cameraZoom, cameraZoom, cameraZoom));
 	viewMatrix = glm::translate(viewMatrix, -(gameObjects[0]->getPosition()));
 	shader.setUniformMat4("viewMatrix", viewMatrix);
@@ -301,6 +313,17 @@ void gameLoop(Window &window, Shader &shader, double deltaTime)
 		currentGameObject->render(shader);
 	}
 
+	//Render map
+	for (int i = 0; i < MapObjects.size(); i++) {
+		glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), MapObjects[i]->getPosition());
+		glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 1.0f));
+		glm::mat4 transformationMatrix = translationMatrix * scaleMatrix;
+		shader.setUniformMat4("transformationMatrix", transformationMatrix);
+		//Draw
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		MapObjects[i]->render(shader);
+	}
+
 	// Update other events like input handling
 	glfwPollEvents();
 
@@ -314,6 +337,36 @@ void gameLoop(Window &window, Shader &shader, double deltaTime)
 	// Remove dead objects from each vector
 	gameObjects.erase(std::remove_if(gameObjects.begin(), gameObjects.end(), [](GameObject* obj) {return !obj->getIsAlive(); }), gameObjects.end());
 	healthBars.erase(std::remove_if(healthBars.begin(), healthBars.end(), [](UIObject* obj) {return !obj->getIsAlive(); }), healthBars.end());
+}
+
+void buildMap(std::string map)
+{
+	std::string line;
+	std::ifstream myfile(map);
+	int j = 0;
+	if (myfile.is_open())
+	{
+		while (getline(myfile, line))
+		{
+			for (int i = 0; i < line.length(); i++) {
+				float len = 2.0f * i;
+				float hei = 0.0f - (2.0f * j);
+				if (line[i] == 'X') {
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[11], 6, 1));
+				}
+				else if (line[i] == 'S') {
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[12], 6, 1));
+					gameObjects[0]->setPosition(glm::vec3(len, hei, 0.0f));
+				}
+				else if (line[i] == 'O') {
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[12], 6, 1));
+				}
+			}
+			j++;
+		}
+		myfile.close();
+	}
+	else std::cout << "Unable to open MAP file";
 }
 
 // Main function that builds and runs the game
