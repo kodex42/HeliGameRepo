@@ -10,6 +10,11 @@ ProjectileGameObject::ProjectileGameObject(glm::vec3 & entityPos, GLuint entityT
 	lifespan = (double) firedFrom.lifespan;
 	timeFired = glfwGetTime();
 	isExploding = false;
+
+	if (x == 1) angle = angle + 0;
+	if (x == -1) angle = angle + 180;
+	if (y == 1) angle = angle + 90;
+	if (y == -1) angle = angle + 270;
 }
 
 void ProjectileGameObject::update(double deltaTime) {
@@ -44,13 +49,12 @@ void ProjectileGameObject::render(Shader & shader) {
 		glBindTexture(GL_TEXTURE_2D, laser);
 
 		// Setup the transformation matrix for the shader
-		glm::mat4 translationOffset = glm::translate(glm::mat4(1.0f), glm::vec3(objectSize, 0, 0));
 		glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), position);
 		glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), (float)(angle - 90), glm::vec3(0, 0, 1));
 		glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(objectSize, objectSize, 1));
 
 		// Set the transformation matrix in the shader
-		glm::mat4 transformationMatrix = translationOffset * translationMatrix * rotationMatrix * scaleMatrix;
+		glm::mat4 transformationMatrix = translationMatrix * rotationMatrix * scaleMatrix;
 		shader.setUniformMat4("transformationMatrix", transformationMatrix);
 
 		// Draw the entity

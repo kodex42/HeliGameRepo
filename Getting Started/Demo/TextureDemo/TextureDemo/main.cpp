@@ -182,13 +182,12 @@ void setup(void)
 
 void shoot(Weapon* w, glm::vec3 startingPos, double dx, double dy) {
 	w->lastTimeShot = glfwGetTime();
-	gameObjects.push_back(new ProjectileGameObject(startingPos, tex[5], 6, *w, dx, dy, tex[6], tex[15]));
 	if (w->speed == -1.0f) {
-		for (int i = 1; i < 10; i++) {
-			gameObjects.push_back(new ProjectileGameObject(startingPos + glm::vec3(w->radius * 2 * i, 0, 0), tex[5], 6, *w, dx, dy, tex[6], tex[15]));
-		}
+		for (int i = 0; i < 11; i++)
+			gameObjects.push_back(new ProjectileGameObject(startingPos + glm::vec3(w->radius * 2 * i * dx, w->radius * 2 * i * dy, 0), tex[5], 6, *w, dx, dy, tex[6], tex[15]));
 		((PlayerGameObject*)gameObjects[0])->freeze(w->lifespan);
-	}
+	} 
+	else gameObjects.push_back(new ProjectileGameObject(startingPos, tex[5], 6, *w, dx, dy, tex[6], tex[15]));
 }
 
 void controls(void)
