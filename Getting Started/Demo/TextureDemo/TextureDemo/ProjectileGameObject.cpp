@@ -1,13 +1,13 @@
 #include "ProjectileGameObject.h"
 
-ProjectileGameObject::ProjectileGameObject(glm::vec3 & entityPos, GLuint entityTexture, GLint entityNumElements, Weapon & weapon, double x, double y, GLuint explosionTex) : GameObject(entityPos, entityTexture, entityNumElements), firedFrom(weapon), explosion(explosionTex) {
+ProjectileGameObject::ProjectileGameObject(glm::vec3 & entityPos, GLuint entityTexture, GLint entityNumElements, Weapon & weapon, double x, double y, GLuint explosionTex, GLuint laserTex) : GameObject(entityPos, entityTexture, entityNumElements), firedFrom(weapon), explosion(explosionTex), laser(laserTex) {
 	acceleration = glm::vec3(0, -(firedFrom.weight / 40), 0);
 	velocity = glm::vec3(x, y, 0);
-	angle = 0;
 	speed = firedFrom.speed;
 	isFriendly = firedFrom.isFriendly;
-	objectSize = 0.1f;
-	lifespan = firedFrom.lifespan;
+	if (speed != -1.0f) objectSize = 0.1f;
+	else objectSize = firedFrom.radius * 2;
+	lifespan = (double) firedFrom.lifespan;
 	timeFired = glfwGetTime();
 	isExploding = false;
 }
@@ -20,22 +20,42 @@ void ProjectileGameObject::update(double deltaTime) {
 		if (objectSize >= firedFrom.radius)
 			GameObject::kill();
 	}
-	else if (lifespan != -1.0f) {
+	else if (lifespan != -1.0) {
 		if (timeFired + lifespan < glfwGetTime()) {
 			kill();
 		}
 	}
 
-	// Update velocity based on current acceleration
-	velocity.x += acceleration.x;
-	velocity.y += acceleration.y;
+	if (speed != -1) {
+		// Update velocity based on current acceleration
+		velocity.x += acceleration.x;
+		velocity.y += acceleration.y;
 
-	// Update object position with Euler integration
-	position += velocity * (float)speed * (float)deltaTime;
+		// Update object position with Euler integration
+		position += velocity * (float)speed * (float)deltaTime;
+	}
 }
 
 void ProjectileGameObject::render(Shader & shader) {
-	GameObject::render(shader);
+	if (speed != -1.0f) GameObject::render(shader);
+	else {
+		glm::vec3 oldPos = glm::vec3(position);
+		// Bind the entities texture
+		glBindTexture(GL_TEXTURE_2D, laser);
+
+		// Setup the transformation matrix for the shader
+		glm::mat4 translationOffset = glm::translate(glm::mat4(1.0f), glm::vec3(objectSize, 0, 0));
+		glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), position);
+		glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), (float)(angle - 90), glm::vec3(0, 0, 1));
+		glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(objectSize, objectSize, 1));
+
+		// Set the transformation matrix in the shader
+		glm::mat4 transformationMatrix = translationOffset * translationMatrix * rotationMatrix * scaleMatrix;
+		shader.setUniformMat4("transformationMatrix", transformationMatrix);
+
+		// Draw the entity
+		glDrawElements(GL_TRIANGLES, numElements, GL_UNSIGNED_INT, 0);
+	}
 }
 
 void ProjectileGameObject::damage() {

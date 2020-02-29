@@ -4,7 +4,7 @@
 
 class ProjectileGameObject : public GameObject {
 public:
-	ProjectileGameObject(glm::vec3 &entityPos, GLuint entityTexture, GLint entityNumElements, Weapon& weapon, double x, double y, GLuint explosionTex);
+	ProjectileGameObject(glm::vec3 &entityPos, GLuint entityTexture, GLint entityNumElements, Weapon& weapon, double x, double y, GLuint explosionTex, GLuint laserTex);
 	
 	// Overrides
 	void update(double deltaTime);
@@ -15,7 +15,8 @@ public:
 private:
 	Weapon& firedFrom;
 	GLuint explosion;
-	float lifespan;
-	float timeFired;
+	GLuint laser;
+	double lifespan;
+	double timeFired;
 	bool isExploding;
 };

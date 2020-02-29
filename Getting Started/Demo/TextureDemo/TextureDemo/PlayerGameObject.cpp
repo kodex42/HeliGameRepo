@@ -16,19 +16,21 @@ PlayerGameObject::PlayerGameObject(glm::vec3 &entityPos, GLuint entityTexture, G
 	weapons = new std::vector<Weapon*>();
 	damageInvincibiltyTime = 2.0f;
 	lastDamageTime = -damageInvincibiltyTime;
+	timeFrozen = 0;
+	lastTimeFrozen = 0;
 
 	// Setup weapons
 	numWeapons = 0;
 	// { lifeSpan, weight, cooldown, speed, radius, lastTimeShot, name, isFriendly }
-	Weapon machineGun = { -1.0f, 0.0f, 0.5f, 4.0f, 0.1f, 0.0f, "machineGun", true };
-	Weapon rockets = { 1.0f, 0.1f, 2.5f, 3.5f, 1.0f, 0.0f, "rockets", true };
-	Weapon scudMissles	= { 1.8f, 3.0f, 5.0f, 0.5f, 1.5f, 0.0f, "scudMissles", true };
-	//Weapon laser		= { 3.0f, 0.0f, 20.0f, -1.0f, 0.15f, 0.0f, "laser", true };
+	Weapon machineGun = { -1.0f, 0.0f, 0.5f, 4.0f, 0.1f, -0.5f, "machineGun", true };
+	Weapon rockets = { 1.0f, 0.1f, 2.5f, 3.5f, 1.0f, -2.5f, "rockets", true };
+	Weapon scudMissles	= { 1.8f, 3.0f, 5.0f, 1.0f, 1.5f, -5.0f, "scudMissles", true };
+	Weapon laser		= { 3.0f, 0.0f, 20.0f, -1.0f, 0.3f, -20.0f, "laser", true };
 	// Give the player these weapons
 	giveWeapon(machineGun);
 	giveWeapon(rockets);
 	giveWeapon(scudMissles);
-	//giveWeapon(laser);
+	giveWeapon(laser);
 	equip(0);
 }
 
@@ -57,30 +59,31 @@ void PlayerGameObject::equip(int index) {
 
 // Update function for moving the player object around
 void PlayerGameObject::update(double deltaTime) {
+	if (lastTimeFrozen + timeFrozen <= glfwGetTime()) {
+		// Slow down speed by friction
+		if (speed > 0)
+			speed -= FRICTION;
+		else
+			speed = 0;
 
-	// Slow down speed by friction
-	if (speed > 0)
-		speed -= FRICTION;
-	else
-		speed = 0;
+		// Update velocity based on current acceleration
+		velocity.x += acceleration.x;
+		velocity.y += acceleration.y;
+		velocity.x *= speed;
+		velocity.y *= speed;
 
-	// Update velocity based on current acceleration
-	velocity.x += acceleration.x;
-	velocity.y += acceleration.y;
-	velocity.x *= speed;
-	velocity.y *= speed;
+		// Cap player speed
+		if (velocity.x > MAX_VEL_X) velocity.x = MAX_VEL_X;
+		if (velocity.y > MAX_VEL_Y) velocity.y = MAX_VEL_Y;
+		if (velocity.x < MIN_VEL_X) velocity.x = MIN_VEL_X;
+		if (velocity.y < MIN_VEL_Y) velocity.y = MIN_VEL_Y;
 
-	// Cap player speed
-	if (velocity.x > MAX_VEL_X) velocity.x = MAX_VEL_X;
-	if (velocity.y > MAX_VEL_Y) velocity.y = MAX_VEL_Y;
-	if (velocity.x < MIN_VEL_X) velocity.x = MIN_VEL_X;
-	if (velocity.y < MIN_VEL_Y) velocity.y = MIN_VEL_Y;
+		// Change angle for rendering helicopter tilt
+		angle = -(30 * (velocity.x / MAX_VEL_X));
 
-	// Change angle for rendering helicopter tilt
-	angle = -(30 * (velocity.x / MAX_VEL_X));
-
-	// Update object position with Euler integration
-	position += velocity * (float)deltaTime;
+		// Update object position with Euler integration
+		position += velocity * (float)deltaTime;
+	}
 }
 
 void PlayerGameObject::render(Shader &shader) {
@@ -103,6 +106,7 @@ void PlayerGameObject::render(Shader &shader) {
 		if (equipped->name == "machineGun") texIndex = 0;
 		if (equipped->name == "rockets") texIndex = 1;
 		if (equipped->name == "scudMissles") texIndex = 2;
+		if (equipped->name == "laser") texIndex = 3;
 
 		// Weapon transformations
 		glm::mat4 weaponTranslation = glm::translate(glm::mat4(1.0f), glm::vec3(0.3f, -0.2f, 0));
@@ -133,7 +137,7 @@ void PlayerGameObject::render(Shader &shader) {
 	glm::mat4 propellorTransformation = playerTransformation * propellorTranslation * propellorRotation * propellorScale;
 
 	// Bind the entities texture
-	glBindTexture(GL_TEXTURE_2D, *extraTextures[3]);
+	glBindTexture(GL_TEXTURE_2D, *extraTextures[4]);
 	shader.setUniformMat4("transformationMatrix", propellorTransformation);
 	// Draw the entity
 	glDrawElements(GL_TRIANGLES, numElements, GL_UNSIGNED_INT, 0);
