@@ -69,8 +69,8 @@ protected:
 	float maxHealth;
 	float health;
 	float objectSize;
-	float damageInvincibiltyTime;
-	float lastDamageTime;
+	double damageInvincibiltyTime;
+	double lastDamageTime;
 	double angle;
 	double aimAngle;
 	double speed;

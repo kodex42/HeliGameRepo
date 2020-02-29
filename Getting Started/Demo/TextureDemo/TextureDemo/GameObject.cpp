@@ -20,7 +20,7 @@ GameObject::GameObject(glm::vec3 &entityPosition, GLuint entityTexture, GLint en
 	objectSize = 1.0f;
 	maxHealth = 5;
 	health = maxHealth;
-	damageInvincibiltyTime = 0.1f;
+	damageInvincibiltyTime = 0.1;
 	lastDamageTime = -damageInvincibiltyTime;
 }
 

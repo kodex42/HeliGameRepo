@@ -22,10 +22,10 @@
 #include "WallGameObject.h"
 #include "VortexGameObject.h"
 
-#define NUM_GAME_OBJECTS 3
+#define NUM_GAME_OBJECTS 4
 #define NUM_UI_TEXTURES 2
-#define NUM_WEAPON_TEXTURES 3
-#define NUM_BULLET_TEXTURES 1
+#define NUM_WEAPON_TEXTURES 4
+#define NUM_BULLET_TEXTURES 2
 #define NUM_WALL_TEXTURES 3
 #define NUM_OBJECTS NUM_GAME_OBJECTS + NUM_UI_TEXTURES + NUM_WEAPON_TEXTURES + NUM_BULLET_TEXTURES + NUM_WALL_TEXTURES
 
@@ -125,12 +125,14 @@ void setallTexture(void)
 	setthisTexture(tex[5], "bullet.png");
 	setthisTexture(tex[6], "explosion.png");
 	setthisTexture(tex[7], "machineGun.png");
-	setthisTexture(tex[8], "rockets.png");
-	setthisTexture(tex[9], "machineGun.png");
-	setthisTexture(tex[10], "propellor.png");
-	setthisTexture(tex[11], "cobbleWall.png");
-	setthisTexture(tex[12], "metalWall.png");
-	setthisTexture(tex[13], "vortex.png");
+	setthisTexture(tex[8], "rocketLauncher.png");
+	setthisTexture(tex[9], "scudMissleLauncher.png");
+	setthisTexture(tex[10], "laserWeapon.png");
+	setthisTexture(tex[11], "propellor.png");
+	setthisTexture(tex[12], "cobbleWall.png");
+	setthisTexture(tex[13], "metalWall.png");
+	setthisTexture(tex[14], "vortex.png");
+	setthisTexture(tex[15], "laser.png");
 
 	//glBindTexture(GL_TEXTURE_2D, tex[0]);
 }
@@ -155,7 +157,8 @@ void setup(void)
 	extraTextures.push_back(new GLuint(tex[7])); // Machine Gun Texture
 	extraTextures.push_back(new GLuint(tex[8])); // Rocket Launcher Texture
 	extraTextures.push_back(new GLuint(tex[9])); // Scud Missle Launcher Texture
-	extraTextures.push_back(new GLuint(tex[10])); // Propellor
+	extraTextures.push_back(new GLuint(tex[10])); // Laser Weapon
+	extraTextures.push_back(new GLuint(tex[11])); // Propellor
 	// Setup the player object (position, texture, vertex count)
 	PlayerGameObject* player = new PlayerGameObject(glm::vec3(0.0f, 0.0f, 0.0f), tex[0], size, extraTextures);
 	// Note, player object should always be the first object in the game object vector 
@@ -179,7 +182,13 @@ void setup(void)
 
 void shoot(Weapon* w, glm::vec3 startingPos, double dx, double dy) {
 	w->lastTimeShot = glfwGetTime();
-	gameObjects.push_back(new ProjectileGameObject(startingPos, tex[5], 6, *w, dx, dy, tex[6]));
+	gameObjects.push_back(new ProjectileGameObject(startingPos, tex[5], 6, *w, dx, dy, tex[6], tex[15]));
+	if (w->speed == -1.0f) {
+		for (int i = 1; i < 10; i++) {
+			gameObjects.push_back(new ProjectileGameObject(startingPos + glm::vec3(w->radius * 2 * i, 0, 0), tex[5], 6, *w, dx, dy, tex[6], tex[15]));
+		}
+		((PlayerGameObject*)gameObjects[0])->freeze(w->lifespan);
+	}
 }
 
 void controls(void)
@@ -307,7 +316,7 @@ void gameLoop(Window &window, Shader &shader, double deltaTime)
 			glm::vec3 pos2 = otherGameObject->getPosition();
 			float rad1 = currentGameObject->getSize() / 2;
 			float rad2 = otherGameObject->getSize() / 2;
-			float breadth = 0.2f;
+			float breadth = 0.1f;
 			if (pow((pos2.x - pos1.x), 2) + pow((pos2.y - pos1.y), 2) <= pow((rad1 + rad2), 2) - breadth) {
 				if (currentGameObject->getIsFriendly() != otherGameObject->getIsFriendly()
 					&& !currentGameObject->isDamaged() && !otherGameObject->isDamaged()) {
@@ -364,7 +373,7 @@ void gameLoop(Window &window, Shader &shader, double deltaTime)
 void buildMap(std::string map)
 {
 	//Add a dummy to the map to reset the render for it (prevents a glitch)
-	MapObjects.push_back(new WallGameObject(glm::vec3(-5.0f, 5.0f, 0.0f), tex[11], 6, 1));
+	MapObjects.push_back(new WallGameObject(glm::vec3(-5.0f, 5.0f, 0.0f), tex[12], 6, 1));
 
 	std::string line;
 	std::ifstream myfile(map);
@@ -377,22 +386,22 @@ void buildMap(std::string map)
 				float len = 2.0f * i;
 				float hei = 0.0f - (2.0f * j);
 				if (line[i] == 'X') {
-					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[11], 6, 1));
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[12], 6, 1));
 				}
 				else if (line[i] == 'S') {
-					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[12], 6, 0));
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], 6, 0));
 					gameObjects[0]->setPosition(glm::vec3(len, hei, 0.0f));
 				}
 				else if (line[i] == 'O') {
-					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[12], 6, 0));
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], 6, 0));
 				}
 				else if (line[i] == 'E') {
-					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[12], 6, 0));
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], 6, 0));
 					gameObjects.push_back(new GameObject(glm::vec3(len, hei, 0.0f), tex[1], 6));
 				}
 				else if (line[i] == 'T') {
-					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[12], 6, 0));
-					gameObjects.push_back(new VortexGameObject(glm::vec3(len, hei, 0.0f), tex[13], 6));
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], 6, 0));
+					gameObjects.push_back(new VortexGameObject(glm::vec3(len, hei, 0.0f), tex[14], 6));
 				}
 			}
 			j++;
