@@ -5,7 +5,7 @@ ProjectileGameObject::ProjectileGameObject(glm::vec3 & entityPos, GLuint entityT
 	velocity = glm::vec3(x, y, 0);
 	speed = firedFrom.speed;
 	isFriendly = firedFrom.isFriendly;
-	if (speed != -1.0f) objectSize = 0.1f;
+	if (speed != -1.0f) objectSize = 0.2f;
 	else objectSize = firedFrom.radius * 2;
 	lifespan = (double) firedFrom.lifespan;
 	timeFired = glfwGetTime();

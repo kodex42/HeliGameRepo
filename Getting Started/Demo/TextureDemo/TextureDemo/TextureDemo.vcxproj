@@ -162,6 +162,7 @@
     <ClCompile Include="VortexGameObject.cpp" />
     <ClCompile Include="WallGameObject.cpp" />
     <ClCompile Include="UIObject.cpp" />
+    <ClCompile Include="WeaponUI.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -177,6 +178,7 @@
     <ClInclude Include="UIObject.h" />
     <ClInclude Include="utils.h" />
     <ClInclude Include="WallGameObject.h" />
+    <ClInclude Include="WeaponUI.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
