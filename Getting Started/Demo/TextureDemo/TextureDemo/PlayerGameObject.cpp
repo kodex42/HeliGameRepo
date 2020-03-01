@@ -57,6 +57,11 @@ void PlayerGameObject::equip(int index) {
 	}
 }
 
+char* PlayerGameObject::whatIs()
+{
+	return "player";
+}
+
 // Update function for moving the player object around
 void PlayerGameObject::update(double deltaTime) {
 	if (lastTimeFrozen + timeFrozen <= glfwGetTime()) {

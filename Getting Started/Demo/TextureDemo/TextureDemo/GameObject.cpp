@@ -71,7 +71,7 @@ void GameObject::damage()
 	}
 }
 
-char * GameObject::pickUp() {
+char * GameObject::whatIs() {
 	//This will be re-written by subclasses to determine what is being picked up. 
 	//However, the object being picked up usually will always disappear for power ups and entering portals anyways.
 	//But for now to be safe it will do nothing. It would be pretty silly for bullets to delete themselves.

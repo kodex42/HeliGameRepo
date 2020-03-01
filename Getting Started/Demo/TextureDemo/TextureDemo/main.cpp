@@ -324,7 +324,7 @@ void gameLoop(Window &window, Shader &shader, double deltaTime)
 				}
 
 				if (otherGameObject->getIsFriendly() && (i == 0)) {
-					char * touched = otherGameObject->pickUp();
+					char * touched = otherGameObject->whatIs();
 					std::cout << "Touched " << touched << std::endl;
 
 					if (strcmp("vortex", touched) == 0) {

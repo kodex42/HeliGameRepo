@@ -22,7 +22,6 @@ public:
 	// Change the speed and bearing of the object
 	void changeDirection(double diff);
 	void changeSpeed(double diff);
-	virtual char * pickUp();
 
 	// Updates the GameObject's state. Can be overriden for children
 	virtual void update(double deltaTime);
@@ -54,6 +53,9 @@ public:
 	virtual inline void kill() { isAlive = false; }
 	virtual inline void revive() { isAlive = true; }
 	virtual void damage();
+
+	// Member functions
+	virtual char* whatIs();
 protected:
 	// Object's Transform Variables
 	// TODO: Add more transformation variables

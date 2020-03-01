@@ -28,6 +28,7 @@ public:
 	void changeAcceleration(glm::vec3 newAcceleration);
 	void equip(int index);
 	inline void freeze(double time) { lastTimeFrozen = glfwGetTime(); timeFrozen = time; }
+	char* whatIs();
 
 	// Static data members
 	static int numWeapons;
