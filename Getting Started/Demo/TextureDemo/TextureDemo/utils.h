@@ -12,3 +12,11 @@ typedef struct Weapon {
 	std::string name;
 	bool isFriendly;
 };
+
+typedef enum PowerUpType {
+	INVINCIBILITY,
+	HEALTH_BOOST,
+	DOUBLE_FIRE_RATE,
+	QUAD_DAMAGE,
+	COIN
+};

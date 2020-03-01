@@ -13,12 +13,13 @@ void HealthUI::update(double deltaTime) {
 void HealthUI::render(Shader &shader) {
 	// Setup the transformation matrix for the shader
 	glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), position)
-		* glm::translate(glm::mat4(1.0f), glm::vec3(-(2*objectSize), 0.75f, 0));
+		* glm::translate(glm::mat4(1.0f), glm::vec3((-(obj.getMaxHealth() / 2) * objectSize) + objectSize/2, 0.75f, 0));
 	glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(objectSize, objectSize, 1));
 
 	// Set the transformation matrix
 	glm::mat4 transformationMatrix = translationMatrix * scaleMatrix;
 
+	shader.setUniform4f("color_base", glm::vec4(0, 0, 0, 0));
 	// Draw active green segments of health
 	for (int i = 0; i < obj.getHealth(); i++) {
 		// Bind the entities texture

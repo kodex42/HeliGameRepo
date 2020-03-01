@@ -156,6 +156,7 @@
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="FileUtils.cpp" />
+    <ClCompile Include="PowerupGameObject.cpp" />
     <ClCompile Include="ProjectileGameObject.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="VortexGameObject.cpp" />
@@ -164,6 +165,7 @@
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="PowerupGameObject.h" />
     <ClInclude Include="VortexGameObject.h" />
     <ClInclude Include="HealthUI.h" />
     <ClInclude Include="main.h" />

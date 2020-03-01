@@ -21,6 +21,7 @@
 #include "ProjectileGameObject.h"
 #include "WallGameObject.h"
 #include "VortexGameObject.h"
+#include "PowerUpGameObject.h"
 
 #define NUM_GAME_OBJECTS 4
 #define NUM_UI_TEXTURES 2
@@ -329,6 +330,12 @@ void gameLoop(Window &window, Shader &shader, double deltaTime)
 
 					if (strcmp("vortex", touched) == 0) {
 						nextLevel();
+					}
+
+					if (strcmp("powerUp", touched) == 0) {
+						PowerUpGameObject* powerUp = (PowerUpGameObject*)otherGameObject;
+						PlayerGameObject* player = (PlayerGameObject*)currentGameObject;
+						player->powerUp(powerUp->getType());
 					}
 				}
 			}

@@ -27,8 +27,10 @@ public:
 	// Member functions
 	void changeAcceleration(glm::vec3 newAcceleration);
 	void equip(int index);
-	inline void freeze(double time) { lastTimeFrozen = glfwGetTime(); timeFrozen = time; }
+	void powerUp(PowerUpType type);
+	void damage();
 	char* whatIs();
+	inline void freeze(double time) { lastTimeFrozen = glfwGetTime(); timeFrozen = time; }
 
 	// Static data members
 	static int numWeapons;
@@ -41,6 +43,9 @@ private:
 	std::vector<GLuint*> extraTextures;
 
 	// Data members
+	int wallet;
 	double lastTimeFrozen;
 	double timeFrozen;
+	double lastTimeMadeInvincible;
+	double timeMadeInvincible;
 };
