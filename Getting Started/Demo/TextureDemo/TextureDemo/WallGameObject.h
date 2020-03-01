@@ -10,6 +10,9 @@ public:
 	void update(double deltaTime);
 	void render(Shader& shader);
 	void damage();
+	inline int getType() { return wallType; }
+	void transform(Shader& shader);
+
 
 private:
 	int wallType;

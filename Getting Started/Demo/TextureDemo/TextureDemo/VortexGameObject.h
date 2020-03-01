@@ -8,5 +8,5 @@ public:
 
 	// Overrides
 	void damage();
-	char * pickUp();
+	char * whatIs();
 };

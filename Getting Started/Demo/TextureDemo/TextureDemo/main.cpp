@@ -307,6 +307,37 @@ void gameLoop(Window &window, Shader &shader, double deltaTime)
 		// Update game objects
 		currentGameObject->update(deltaTime);
 
+		//Check for collision with walls if the item is a projectile or a player
+		if (i == 0 || currentGameObject->getType() == 1) {
+			for (int j = 0; j < MapObjects.size(); j++) {
+				GameObject* currentWall = MapObjects[j];
+				PlayerGameObject* player = (PlayerGameObject*)gameObjects[0];
+
+				//Get positions
+				glm::vec3 pos1 = currentGameObject->getPosition();
+				glm::vec3 pos2 = currentWall->getPosition();
+				float rad1 = currentGameObject->getSize() / 2;
+				//If the wall is solid
+				if (currentWall->getType() == 1) {
+					//If they touch
+					if( pos1.x > pos2.x-1.0f && pos1.x < pos2.x+1.0f && pos1.y > pos2.y-1.0f && pos1.y < pos2.y+1.0f ){
+						std::cout << "Touched wall" << std::endl;
+						if (i == 0) {
+							currentGameObject->damage();
+							glm::vec3 dir = player->getAcceleration();
+							float ddx = dir.x;
+							float ddy = dir.y;
+							currentGameObject->setPosition(pos1 - glm::vec3(ddx * 1.0f, ddy * 1.0f, 0.0));
+							continue;
+						}
+						else {
+							currentGameObject->kill();
+						}
+					}
+				}
+			}
+		}
+
 		// Check for collision between game objects
 		for (int j = i + 1; j < gameObjects.size(); j++) {
 			GameObject* otherGameObject = gameObjects[j];
@@ -340,12 +371,6 @@ void gameLoop(Window &window, Shader &shader, double deltaTime)
 
 	//Render map
 	for (int i = 0; i < MapObjects.size(); i++) {
-		glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), MapObjects[i]->getPosition());
-		glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 1.0f));
-		glm::mat4 transformationMatrix = translationMatrix * scaleMatrix;
-		shader.setUniformMat4("transformationMatrix", transformationMatrix);
-		//Draw
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		MapObjects[i]->render(shader);
 	}
 
@@ -363,17 +388,10 @@ void gameLoop(Window &window, Shader &shader, double deltaTime)
 	gameObjects.erase(std::remove_if(gameObjects.begin(), gameObjects.end(), [](GameObject* obj) {return !obj->getIsAlive(); }), gameObjects.end());
 	healthBars.erase(std::remove_if(healthBars.begin(), healthBars.end(), [](UIObject* obj) {return !obj->getIsAlive(); }), healthBars.end());
 	MapObjects.erase(std::remove_if(MapObjects.begin(), MapObjects.end(), [](GameObject* obj) {return !obj->getIsAlive(); }), MapObjects.end());
-
-	/*if (MapObjects.size() == 0) {
-		nextLevel();
-	}*/
 }
 
 void buildMap(std::string map)
 {
-	//Add a dummy to the map to reset the render for it (prevents a glitch)
-	MapObjects.push_back(new WallGameObject(glm::vec3(-5.0f, 5.0f, 0.0f), tex[12], 6, 1));
-
 	std::string line;
 	std::ifstream myfile(map);
 	int j = 0;
@@ -381,6 +399,7 @@ void buildMap(std::string map)
 	{
 		while (getline(myfile, line))
 		{
+			std::cout << line << std::endl;
 			for (int i = 0; i < line.length(); i++) {
 				float len = 2.0f * i;
 				float hei = 0.0f - (2.0f * j);

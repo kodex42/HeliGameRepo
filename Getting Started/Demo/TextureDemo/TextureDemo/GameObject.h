@@ -56,6 +56,8 @@ public:
 
 	// Member functions
 	virtual char* whatIs();
+	virtual inline int getType() { return -1; }
+
 protected:
 	// Object's Transform Variables
 	// TODO: Add more transformation variables
