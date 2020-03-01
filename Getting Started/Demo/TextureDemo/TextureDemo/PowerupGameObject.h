@@ -9,7 +9,7 @@ public:
 
 	// Member functions
 	char* whatIs();
-	PowerUpType getType();
+	PowerUpType getPowerUpType();
 
 private:
 	// Data members

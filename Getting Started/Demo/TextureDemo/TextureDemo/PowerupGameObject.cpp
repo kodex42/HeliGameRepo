@@ -8,6 +8,6 @@ char* PowerUpGameObject::whatIs() {
 	return "powerUp";
 }
 
-PowerUpType PowerUpGameObject::getType() {
+PowerUpType PowerUpGameObject::getPowerUpType() {
 	return type;
 }
