@@ -376,7 +376,7 @@ void gameLoop(Window &window, Shader &shader, double deltaTime)
 					if (strcmp("powerUp", touched) == 0) {
 						PowerUpGameObject* powerUp = (PowerUpGameObject*)otherGameObject;
 						PlayerGameObject* player = (PlayerGameObject*)currentGameObject;
-						player->powerUp(powerUp->getType());
+						player->powerUp(powerUp->getPowerUpType());
 					}
 				}
 			}
