@@ -156,14 +156,17 @@
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="FileUtils.cpp" />
+    <ClCompile Include="PowerupGameObject.cpp" />
     <ClCompile Include="ProjectileGameObject.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="VortexGameObject.cpp" />
     <ClCompile Include="WallGameObject.cpp" />
     <ClCompile Include="UIObject.cpp" />
+    <ClCompile Include="WeaponUI.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="PowerupGameObject.h" />
     <ClInclude Include="VortexGameObject.h" />
     <ClInclude Include="HealthUI.h" />
     <ClInclude Include="main.h" />
@@ -175,6 +178,7 @@
     <ClInclude Include="UIObject.h" />
     <ClInclude Include="utils.h" />
     <ClInclude Include="WallGameObject.h" />
+    <ClInclude Include="WeaponUI.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>

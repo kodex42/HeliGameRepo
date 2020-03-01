@@ -5,7 +5,7 @@ ProjectileGameObject::ProjectileGameObject(glm::vec3 & entityPos, GLuint entityT
 	velocity = glm::vec3(x, y, 0);
 	speed = firedFrom.speed;
 	isFriendly = firedFrom.isFriendly;
-	if (speed != -1.0f) objectSize = 0.1f;
+	if (speed != -1.0f) objectSize = 0.2f;
 	else objectSize = firedFrom.radius * 2;
 	lifespan = (double) firedFrom.lifespan;
 	timeFired = glfwGetTime();
@@ -18,6 +18,8 @@ ProjectileGameObject::ProjectileGameObject(glm::vec3 & entityPos, GLuint entityT
 }
 
 void ProjectileGameObject::update(double deltaTime) {
+	time = glfwGetTime();
+
 	if (isExploding) {
 		objectSize += 3*deltaTime;
 		velocity = glm::vec3(0, 0, 0);
@@ -53,6 +55,7 @@ void ProjectileGameObject::render(Shader & shader) {
 		glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), (float)(angle - 90), glm::vec3(0, 0, 1));
 		glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(objectSize, objectSize, 1));
 
+		shader.setUniform4f("color_base", glm::vec4(0, 0, 0, 0));
 		// Set the transformation matrix in the shader
 		glm::mat4 transformationMatrix = translationMatrix * rotationMatrix * scaleMatrix;
 		shader.setUniformMat4("transformationMatrix", transformationMatrix);

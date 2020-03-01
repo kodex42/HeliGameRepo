@@ -18,14 +18,16 @@
 #include "PlayerGameObject.h"
 #include "UIObject.h"
 #include "HealthUI.h"
+#include "WeaponUI.h"
 #include "ProjectileGameObject.h"
 #include "WallGameObject.h"
 #include "VortexGameObject.h"
+#include "PowerUpGameObject.h"
 
 #define NUM_GAME_OBJECTS 4
-#define NUM_UI_TEXTURES 2
+#define NUM_UI_TEXTURES 4
 #define NUM_WEAPON_TEXTURES 4
-#define NUM_BULLET_TEXTURES 2
+#define NUM_BULLET_TEXTURES 3
 #define NUM_WALL_TEXTURES 3
 #define NUM_OBJECTS NUM_GAME_OBJECTS + NUM_UI_TEXTURES + NUM_WEAPON_TEXTURES + NUM_BULLET_TEXTURES + NUM_WALL_TEXTURES
 
@@ -51,7 +53,8 @@ GLuint tex[NUM_OBJECTS];
 
 // Global game object info
 std::vector<GameObject*> gameObjects;
-std::vector<UIObject*> healthBars;
+std::vector<UIObject*> dynamicUIObjects;
+std::vector<UIObject*> staticUIObjects;
 std::vector<GameObject*> MapObjects;
 
 // Create the geometry for a square (with two triangles)
@@ -133,6 +136,8 @@ void setallTexture(void)
 	setthisTexture(tex[13], "metalWall.png");
 	setthisTexture(tex[14], "vortex.png");
 	setthisTexture(tex[15], "laser.png");
+	setthisTexture(tex[16], "weaponCooldownBar.png");
+	setthisTexture(tex[17], "weaponCooldownBarSegment.png");
 
 	//glBindTexture(GL_TEXTURE_2D, tex[0]);
 }
@@ -176,8 +181,10 @@ void setup(void)
 	
 	//Set up UI objects
 	for (int i = 0; i < gameObjects.size(); i++) {
-		healthBars.push_back(new HealthUI(gameObjects[i]->getPosition(), tex[3], tex[4], size, *(gameObjects[i])));
+		dynamicUIObjects.push_back(new HealthUI(gameObjects[i]->getPosition(), tex[3], tex[4], size, *(gameObjects[i])));
 	}
+
+	staticUIObjects.push_back(new WeaponUI(glm::vec3(-1.0f, -1.875f, 0), tex[16], tex[17], size, *(gameObjects[0])));
 }
 
 void shoot(Weapon* w, glm::vec3 startingPos, double dx, double dy) {
@@ -273,14 +280,17 @@ void gameLoop(Window &window, Shader &shader, double deltaTime)
 	// Clear background
 	window.clear(viewport_background_color_g);
 
-	// Render UI
-	/*glm::mat4 UIMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.25, 0.25, 0.25));
-	shader.setUniformMat4("viewMatrix", UIMatrix);
-	for (int i = 0; i < uiObjects.size(); i++) {
-		UIObject *obj = uiObjects[i];
-		if (obj->getIsAlive())
+	// Render static UI Elements
+	float uiZoom = 0.5f;
+	glm::mat4 staticUIMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(uiZoom, uiZoom, uiZoom));
+	shader.setUniformMat4("viewMatrix", staticUIMatrix);
+	for (int i = 0; i < staticUIObjects.size(); i++) {
+		UIObject* obj = staticUIObjects[i];
+		if (obj->getIsAlive()) {
+			obj->update(deltaTime);
 			obj->render(shader);
-	}*/
+		}
+	}
 
 	// set view to zoom out, centred by default at 0,0
 	float cameraZoom = 0.15f;
@@ -288,8 +298,9 @@ void gameLoop(Window &window, Shader &shader, double deltaTime)
 	viewMatrix = glm::translate(viewMatrix, -(gameObjects[0]->getPosition()));
 	shader.setUniformMat4("viewMatrix", viewMatrix);
 
-	for (int i = 0; i < healthBars.size(); i++) {
-		UIObject *obj = healthBars[i];
+	// Render dynamic UI Elements
+	for (int i = 0; i < dynamicUIObjects.size(); i++) {
+		UIObject *obj = dynamicUIObjects[i];
 		if (obj->getIsAlive()) {
 			obj->update(deltaTime);
 			obj->render(shader);
@@ -361,6 +372,12 @@ void gameLoop(Window &window, Shader &shader, double deltaTime)
 					if (strcmp("vortex", touched) == 0) {
 						nextLevel();
 					}
+
+					if (strcmp("powerUp", touched) == 0) {
+						PowerUpGameObject* powerUp = (PowerUpGameObject*)otherGameObject;
+						PlayerGameObject* player = (PlayerGameObject*)currentGameObject;
+						player->powerUp(powerUp->getType());
+					}
 				}
 			}
 		}
@@ -386,7 +403,7 @@ void gameLoop(Window &window, Shader &shader, double deltaTime)
 
 	// Remove dead objects from each vector
 	gameObjects.erase(std::remove_if(gameObjects.begin(), gameObjects.end(), [](GameObject* obj) {return !obj->getIsAlive(); }), gameObjects.end());
-	healthBars.erase(std::remove_if(healthBars.begin(), healthBars.end(), [](UIObject* obj) {return !obj->getIsAlive(); }), healthBars.end());
+	dynamicUIObjects.erase(std::remove_if(dynamicUIObjects.begin(), dynamicUIObjects.end(), [](UIObject* obj) {return !obj->getIsAlive(); }), dynamicUIObjects.end());
 	MapObjects.erase(std::remove_if(MapObjects.begin(), MapObjects.end(), [](GameObject* obj) {return !obj->getIsAlive(); }), MapObjects.end());
 }
 
@@ -438,7 +455,7 @@ void nextLevel() {
 	}
 	buildMap("map2.txt");
 	for (int i = 0; i < gameObjects.size(); i++) {
-		healthBars.push_back(new HealthUI(gameObjects[i]->getPosition(), tex[3], tex[4], 6, *(gameObjects[i])));
+		dynamicUIObjects.push_back(new HealthUI(gameObjects[i]->getPosition(), tex[3], tex[4], 6, *(gameObjects[i])));
 	}
 }
 

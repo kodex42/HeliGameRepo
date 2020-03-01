@@ -9,17 +9,21 @@
 int PlayerGameObject::numWeapons = 0;
 
 PlayerGameObject::PlayerGameObject(glm::vec3 &entityPos, GLuint entityTexture, GLint entityNumElements, std::vector<GLuint*> extraTextures)
-	: GameObject(entityPos, entityTexture, entityNumElements), extraTextures(extraTextures) {
-	maxHealth = 5;
-	health = maxHealth;
-	isFriendly = true;
-	weapons = new std::vector<Weapon*>();
+	: GameObject(entityPos, entityTexture, entityNumElements), extraTextures(extraTextures), equipped(0) {
+	// Setup state variables
+	wallet = 0;
 	damageInvincibiltyTime = 2.0f;
 	lastDamageTime = -damageInvincibiltyTime;
 	timeFrozen = 0;
 	lastTimeFrozen = 0;
+	timeMadeInvincible = 0;
+	lastTimeMadeInvincible = 0;
+	maxHealth = 5;
+	health = maxHealth;
+	isFriendly = true;
 
 	// Setup weapons
+	weapons = new std::vector<Weapon*>();
 	numWeapons = 0;
 	// { lifeSpan, weight, cooldown, speed, radius, lastTimeShot, name, isFriendly }
 	Weapon machineGun = { -1.0f, 0.0f, 0.5f, 4.0f, 0.1f, -0.5f, "machineGun", true };
@@ -32,6 +36,9 @@ PlayerGameObject::PlayerGameObject(glm::vec3 &entityPos, GLuint entityTexture, G
 	giveWeapon(scudMissles);
 	giveWeapon(laser);
 	equip(0);
+
+	// Testing Powerups
+	powerUp(HEALTH_BOOST);
 }
 
 PlayerGameObject::~PlayerGameObject() {
@@ -57,14 +64,42 @@ void PlayerGameObject::equip(int index) {
 	}
 }
 
-char* PlayerGameObject::whatIs()
-{
+void PlayerGameObject::powerUp(PowerUpType type) {
+	switch (type) {
+	case INVINCIBILITY:
+		lastTimeMadeInvincible = time;
+		timeMadeInvincible = 5.0f; // 5 seconds of invincibility
+		break;
+	case HEALTH_BOOST:
+		maxHealth += 2;
+		health += 2;
+		// Health boosts last until death
+		break;
+	case DOUBLE_FIRE_RATE:
+		break;
+	case QUAD_DAMAGE:
+		break;
+	case COIN:
+		wallet++;
+		break;
+	}
+}
+
+void PlayerGameObject::damage() {
+	if (lastTimeMadeInvincible + timeMadeInvincible <= time) {
+		GameObject::damage();
+	}
+}
+
+char* PlayerGameObject::whatIs() {
 	return "player";
 }
 
 // Update function for moving the player object around
 void PlayerGameObject::update(double deltaTime) {
-	if (lastTimeFrozen + timeFrozen <= glfwGetTime()) {
+	time = glfwGetTime();
+
+	if (lastTimeFrozen + timeFrozen <= time) {
 		// Slow down speed by friction
 		if (speed > 0)
 			speed -= FRICTION;
@@ -99,12 +134,15 @@ void PlayerGameObject::render(Shader &shader) {
 	glm::mat4 playerScale = glm::scale(glm::mat4(1.0f), glm::vec3(objectSize, objectSize, 1));
 	glm::mat4 playerDamageOffset = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
 	
-	if (lastDamageTime + damageInvincibiltyTime > glfwGetTime()) {
-		playerDamageOffset = glm::translate(glm::mat4(1.0f), glm::vec3(cos(glfwGetTime() * 50) / 50, 0, 0));
+	if (lastDamageTime + damageInvincibiltyTime > time) {
+		playerDamageOffset = glm::translate(glm::mat4(1.0f), glm::vec3(cos(time * 50) / 50, 0, 0));
 	}
 
 	glm::mat4 playerTransformation = playerDamageOffset * playerTranslation * playerRotation * playerScale;
 
+	// Invincibility Rainbow Effect
+	glm::vec4 colorBase = lastTimeMadeInvincible + timeMadeInvincible > time ? glm::vec4(pow(cos(time*2), 2), pow(sin(time*2), 2), pow(tan(time*2) / 2, 2), 1) : glm::vec4(0, 0, 0, 0);
+	shader.setUniform4f("color_base", colorBase);
 	// ---------- DRAW WEAPON ----------
 	if (numWeapons > 0) {
 		int texIndex = 0;
@@ -137,7 +175,7 @@ void PlayerGameObject::render(Shader &shader) {
 
 	// ---------- DRAW PROPELLOR ----------
 	glm::mat4 propellorTranslation = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0.6f, 0));
-	glm::mat4 propellorRotation = glm::rotate(glm::mat4(1.0f), (float)fmod(glfwGetTime()*1000, 360), glm::vec3(0, 1, 0));
+	glm::mat4 propellorRotation = glm::rotate(glm::mat4(1.0f), (float)fmod(time*2000, 360), glm::vec3(0, 1, 0));
 	glm::mat4 propellorScale = glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 1.0f));
 	glm::mat4 propellorTransformation = playerTransformation * propellorTranslation * propellorRotation * propellorScale;
 

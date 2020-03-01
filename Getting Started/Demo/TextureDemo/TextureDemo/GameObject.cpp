@@ -36,6 +36,7 @@ void GameObject::changeSpeed(double diff) {
 
 // Updates the GameObject's state
 void GameObject::update(double deltaTime) {
+	time = glfwGetTime();
 
 	// Update velocity based on current angle
 	double rad = glm::radians(angle);
@@ -55,17 +56,18 @@ void GameObject::transform(Shader &shader) {
 	// Set the transformation matrix in the shader
 	glm::mat4 transformationMatrix = translationMatrix * rotationMatrix * scaleMatrix;
 	shader.setUniformMat4("transformationMatrix", transformationMatrix);
+	shader.setUniform4f("color_base", glm::vec4(0, 0, 0, 0));
 }
 
 bool GameObject::isDamaged()
 {
-	return lastDamageTime + damageInvincibiltyTime >= glfwGetTime();
+	return lastDamageTime + damageInvincibiltyTime >= time;
 }
 
 void GameObject::damage()
 {
 	if (!isDamaged()) {
-		lastDamageTime = glfwGetTime();
+		lastDamageTime = time;
 		health -= 1;
 		if (health <= 0) kill();
 	}

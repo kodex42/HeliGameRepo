@@ -78,6 +78,7 @@ protected:
 	double angle;
 	double aimAngle;
 	double speed;
+	double time;
 	bool isAlive;
 	bool isFriendly;
 
