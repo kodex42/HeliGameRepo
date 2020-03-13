@@ -11,6 +11,7 @@ public:
 	void render(Shader &shader);
 	void damage();
 	void kill();
+	inline int getType() { return 1; }
 
 private:
 	Weapon& firedFrom;

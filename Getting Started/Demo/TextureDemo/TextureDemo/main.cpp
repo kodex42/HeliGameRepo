@@ -48,6 +48,9 @@ void buildMap(std::string map);
 // Allows the transition to the next level from making contact with the portal
 void nextLevel();
 
+//Allows the player to hit walls and return to the map safely
+void playerRelocate(PlayerGameObject *player);
+
 // Global texture info
 GLuint tex[NUM_OBJECTS];
 
@@ -331,14 +334,15 @@ void gameLoop(Window &window, Shader &shader, double deltaTime)
 				//If the wall is solid
 				if (currentWall->getType() == 1) {
 					//If they touch
-					if( pos1.x > pos2.x-1.0f && pos1.x < pos2.x+1.0f && pos1.y > pos2.y-1.0f && pos1.y < pos2.y+1.0f ){
+					if (pos1.x > pos2.x - 1.0f && pos1.x < pos2.x + 1.0f && pos1.y > pos2.y - 1.0f && pos1.y < pos2.y + 1.0f) {
 						std::cout << "Touched wall" << std::endl;
 						if (i == 0) {
+							playerRelocate(player);
 							currentGameObject->damage();
-							glm::vec3 dir = player->getAcceleration();
-							float ddx = dir.x;
-							float ddy = dir.y;
-							currentGameObject->setPosition(pos1 - glm::vec3(ddx * 1.0f, ddy * 1.0f, 0.0));
+							//glm::vec3 dir = player->getAcceleration();
+							//float ddx = dir.x;
+							//float ddy = dir.y;
+							//currentGameObject->setPosition(pos1 - glm::vec3(ddx * 1.0f, ddy * 1.0f, 0.0));
 							continue;
 						}
 						else {
@@ -407,6 +411,71 @@ void gameLoop(Window &window, Shader &shader, double deltaTime)
 	MapObjects.erase(std::remove_if(MapObjects.begin(), MapObjects.end(), [](GameObject* obj) {return !obj->getIsAlive(); }), MapObjects.end());
 }
 
+void playerRelocate(PlayerGameObject* player) {
+	glm::vec3 truePos = player->getPosition();
+	float rad1 = player->getSize() / 2;
+	bool touched;
+
+	//Find the nearest unoccupied square and plop the player there.
+	for (int i = 0; i < 8; i++) {
+		touched = false;
+		glm::vec3 pos1 = truePos;
+		if (i == 0) {
+			//To the right
+			pos1.x = pos1.x + 1.0f;
+		}
+		else if (i == 1) {
+			//To the upper right
+			pos1.x = pos1.x + 1.0f;
+			pos1.y = pos1.y + 1.0f;
+		}
+		else if (i == 2) {
+			//Above
+			pos1.y = pos1.y + 1.0f;
+		}
+		else if (i == 3) {
+			//To the upper left
+			pos1.x = pos1.x - 1.0f;
+			pos1.y = pos1.y + 1.0f;
+		}
+		else if (i == 4) {
+			//To the left
+			pos1.x = pos1.x - 1.0f;
+		}
+		else if (i == 5) {
+			//To the lower left
+			pos1.x = pos1.x - 1.0f;
+			pos1.y = pos1.y - 1.0f;
+		}
+		else if (i == 6) {
+			//Below
+			pos1.y = pos1.y - 1.0f;
+		}
+		else if (i == 7) {
+			//To the lower right
+			pos1.x = pos1.x + 1.0f;
+			pos1.y = pos1.y - 1.0f;
+		}
+		for (int j = 0; j < MapObjects.size(); j++) {
+			GameObject* currentWall = MapObjects[j];
+			glm::vec3 pos2 = currentWall->getPosition();
+			//If the wall is solid
+			if (currentWall->getType() == 1) {
+				//If they touch, try again
+				if (pos1.x > pos2.x - 1.0f && pos1.x < pos2.x + 1.0f && pos1.y > pos2.y - 1.0f && pos1.y < pos2.y + 1.0f) {
+					touched = true;
+					continue;
+				}
+			}
+		}
+		if (!touched) {
+			//Nobody touched a wall this time? This is the one.
+			player->setPosition(pos1);
+			return;
+		}
+	}
+}
+
 void buildMap(std::string map)
 {
 	std::string line;
@@ -447,16 +516,26 @@ void buildMap(std::string map)
 }
 
 void nextLevel() {
+	currentStage++;
 	for (int i = 0; i < MapObjects.size(); i++) {
 		MapObjects[i]->kill();
 	}
 	for (int i = 1; i < gameObjects.size(); i++) {
 		gameObjects[i]->kill();
 	}
-	buildMap("map2.txt");
+	if (currentStage == 1) {
+		buildMap("map2.txt");
+	}
+	else if (currentStage == 2) {
+		buildMap("map3.txt");
+	}
 	for (int i = 0; i < gameObjects.size(); i++) {
 		dynamicUIObjects.push_back(new HealthUI(gameObjects[i]->getPosition(), tex[3], tex[4], 6, *(gameObjects[i])));
 	}
+}
+
+void relocatePlayer(PlayerGameObject* player)
+{
 }
 
 // Main function that builds and runs the game
