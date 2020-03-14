@@ -193,11 +193,16 @@ void setup(void)
 void shoot(Weapon* w, glm::vec3 startingPos, double dx, double dy) {
 	w->lastTimeShot = glfwGetTime();
 	if (w->speed == -1.0f) {
-		for (int i = 0; i < 11; i++)
-			gameObjects.push_back(new ProjectileGameObject(startingPos + glm::vec3(w->radius * 2 * i * dx, w->radius * 2 * i * dy, 0), tex[5], 6, *w, dx, dy, tex[6], tex[15]));
+		for (int i = 0; i < 11; i++) {
+			ProjectileGameObject* proj = new ProjectileGameObject(startingPos + glm::vec3(w->radius * 2 * i * dx, w->radius * 2 * i * dy, 0), tex[5], 6, *w, dx, dy, tex[6], tex[15]);
+			gameObjects.push_back(proj);
+		}
 		((PlayerGameObject*)gameObjects[0])->freeze(w->lifespan);
 	} 
-	else gameObjects.push_back(new ProjectileGameObject(startingPos, tex[5], 6, *w, dx, dy, tex[6], tex[15]));
+	else {
+		ProjectileGameObject* proj = new ProjectileGameObject(startingPos, tex[5], 6, *w, dx, dy, tex[6], tex[15]);
+		gameObjects.push_back(proj);
+	}
 }
 
 void controls(void)
@@ -278,7 +283,7 @@ void controls(void)
 	}
 }
 
-void gameLoop(Window &window, Shader &shader, double deltaTime)
+void gameLoop(Window& window, Shader& shader, double deltaTime)
 {
 	// Clear background
 	window.clear(viewport_background_color_g);
@@ -303,7 +308,7 @@ void gameLoop(Window &window, Shader &shader, double deltaTime)
 
 	// Render dynamic UI Elements
 	for (int i = 0; i < dynamicUIObjects.size(); i++) {
-		UIObject *obj = dynamicUIObjects[i];
+		UIObject* obj = dynamicUIObjects[i];
 		if (obj->getIsAlive()) {
 			obj->update(deltaTime);
 			obj->render(shader);
@@ -338,7 +343,7 @@ void gameLoop(Window &window, Shader &shader, double deltaTime)
 						std::cout << "Touched wall" << std::endl;
 						if (i == 0) {
 							playerRelocate(player);
-							currentGameObject->damage();
+							currentGameObject->damage(1.0f);
 							//glm::vec3 dir = player->getAcceleration();
 							//float ddx = dir.x;
 							//float ddy = dir.y;
@@ -365,12 +370,12 @@ void gameLoop(Window &window, Shader &shader, double deltaTime)
 			if (pow((pos2.x - pos1.x), 2) + pow((pos2.y - pos1.y), 2) <= pow((rad1 + rad2), 2) - breadth) {
 				if (currentGameObject->getIsFriendly() != otherGameObject->getIsFriendly()
 					&& !currentGameObject->isDamaged() && !otherGameObject->isDamaged()) {
-					currentGameObject->damage();
-					otherGameObject->damage();
+					currentGameObject->damage(otherGameObject->getDamage());
+					otherGameObject->damage(currentGameObject->getDamage());
 				}
 
 				if (otherGameObject->getIsFriendly() && (i == 0)) {
-					char * touched = otherGameObject->whatIs();
+					char* touched = otherGameObject->whatIs();
 					std::cout << "Touched " << touched << std::endl;
 
 					if (strcmp("vortex", touched) == 0) {

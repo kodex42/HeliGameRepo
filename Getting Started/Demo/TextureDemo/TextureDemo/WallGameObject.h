@@ -9,7 +9,7 @@ public:
 	// Overrides
 	void update(double deltaTime);
 	void render(Shader& shader);
-	void damage();
+	void damage(float val);
 	inline int getType() { return wallType; }
 	void transform(Shader& shader);
 

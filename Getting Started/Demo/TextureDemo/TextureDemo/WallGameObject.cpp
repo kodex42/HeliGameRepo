@@ -18,9 +18,9 @@ void WallGameObject::render(Shader& shader) {
 	GameObject::render(shader);
 }
 
-void WallGameObject::damage() {
+void WallGameObject::damage(float val) {
 	if (wallType == 2) {
-		GameObject::damage();
+		GameObject::damage(val);
 	}
 }
 

@@ -41,6 +41,7 @@ public:
 	inline double getAimAngle() { return aimAngle; }
 	inline bool getIsAlive() { return isAlive; }
 	inline bool getIsFriendly() { return isFriendly; }
+	inline float getDamage() { return damageVal; }
 	bool isDamaged();
 
 	// Setters
@@ -52,7 +53,7 @@ public:
 	inline void setAimAngle(double angle) { aimAngle = angle; }
 	virtual inline void kill() { isAlive = false; }
 	virtual inline void revive() { isAlive = true; }
-	virtual void damage();
+	virtual void damage(float val);
 
 	// Member functions
 	virtual char* whatIs();
@@ -73,6 +74,7 @@ protected:
 	float maxHealth;
 	float health;
 	float objectSize;
+	float damageVal;
 	double damageInvincibiltyTime;
 	double lastDamageTime;
 	double angle;

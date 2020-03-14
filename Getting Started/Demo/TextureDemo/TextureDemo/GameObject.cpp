@@ -15,11 +15,13 @@ GameObject::GameObject(glm::vec3 &entityPosition, GLuint entityTexture, GLint en
 	angle = 90;
 	aimAngle = 0;
 	speed = 0;
+	time = 0;
 	isAlive = true;
 	isFriendly = false;
 	objectSize = 1.0f;
 	maxHealth = 5;
 	health = maxHealth;
+	damageVal = 1.0f;
 	damageInvincibiltyTime = 0.1;
 	lastDamageTime = -damageInvincibiltyTime;
 }
@@ -64,11 +66,11 @@ bool GameObject::isDamaged()
 	return lastDamageTime + damageInvincibiltyTime >= time;
 }
 
-void GameObject::damage()
+void GameObject::damage(float val)
 {
 	if (!isDamaged()) {
 		lastDamageTime = time;
-		health -= 1;
+		health -= val;
 		if (health <= 0) kill();
 	}
 }

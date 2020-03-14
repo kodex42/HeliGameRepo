@@ -25,11 +25,11 @@ PlayerGameObject::PlayerGameObject(glm::vec3 &entityPos, GLuint entityTexture, G
 	// Setup weapons
 	weapons = new std::vector<Weapon*>();
 	numWeapons = 0;
-	// { lifeSpan, weight, cooldown, speed, radius, lastTimeShot, name, isFriendly }
-	Weapon machineGun = { -1.0f, 0.0f, 0.5f, 4.0f, 0.1f, -0.5f, "machineGun", true };
-	Weapon rockets = { 1.0f, 0.1f, 2.5f, 3.5f, 1.0f, -2.5f, "rockets", true };
-	Weapon scudMissles	= { 1.8f, 3.0f, 5.0f, 1.0f, 1.5f, -5.0f, "scudMissles", true };
-	Weapon laser		= { 3.0f, 0.0f, 20.0f, -1.0f, 0.3f, -20.0f, "laser", true };
+	// Weapon(lifespan, weight, cooldown, speed, radius, name, isFriendly);
+	Weapon machineGun	= Weapon(-1.0f, 0.0f, 0.5f, 4.0f, 0.1f, "machineGun", true);
+	Weapon rockets		= Weapon(1.0f, 0.1f, 2.5f, 3.5f, 1.0f, "rockets", true);
+	Weapon scudMissles	= Weapon(1.8f, 3.0f, 5.0f, 1.0f, 1.5f, "scudMissles", true);
+	Weapon laser		= Weapon(3.0f, 0.0f, 20.0f, -1.0f, 0.3f, "laser", true);
 	// Give the player these weapons
 	giveWeapon(machineGun);
 	giveWeapon(rockets);
@@ -38,7 +38,11 @@ PlayerGameObject::PlayerGameObject(glm::vec3 &entityPos, GLuint entityTexture, G
 	equip(0);
 
 	// Testing Powerups
-	powerUp(HEALTH_BOOST);
+	//powerUp(INVINCIBILITY);
+	//powerUp(HEALTH_BOOST);
+	//powerUp(DOUBLE_FIRE_RATE);
+	//powerUp(QUAD_DAMAGE);
+	//powerUp(COIN);
 }
 
 PlayerGameObject::~PlayerGameObject() {
@@ -76,8 +80,16 @@ void PlayerGameObject::powerUp(PowerUpType type) {
 		// Health boosts last until death
 		break;
 	case DOUBLE_FIRE_RATE:
+		if (equipped->currentPowerup == "x4Damage")
+			equipped->damage /= 4;
+		equipped->currentPowerup = "x2FireRate";
+		equipped->cooldown /= 2;
 		break;
 	case QUAD_DAMAGE:
+		if (equipped->currentPowerup == "x2FireRate")
+			equipped->cooldown *= 2;
+		equipped->currentPowerup = "x4Damage";
+		equipped->damage *= 4;
 		break;
 	case COIN:
 		wallet++;
@@ -85,9 +97,9 @@ void PlayerGameObject::powerUp(PowerUpType type) {
 	}
 }
 
-void PlayerGameObject::damage() {
+void PlayerGameObject::damage(float val) {
 	if (lastTimeMadeInvincible + timeMadeInvincible <= time) {
-		GameObject::damage();
+		GameObject::damage(val);
 	}
 }
 

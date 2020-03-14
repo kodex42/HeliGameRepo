@@ -5,6 +5,7 @@ ProjectileGameObject::ProjectileGameObject(glm::vec3 & entityPos, GLuint entityT
 	velocity = glm::vec3(x, y, 0);
 	speed = firedFrom.speed;
 	isFriendly = firedFrom.isFriendly;
+	damageVal = firedFrom.damage;
 	if (speed != -1.0f) objectSize = 0.2f;
 	else objectSize = firedFrom.radius * 2;
 	lifespan = (double) firedFrom.lifespan;
@@ -65,7 +66,7 @@ void ProjectileGameObject::render(Shader & shader) {
 	}
 }
 
-void ProjectileGameObject::damage() {
+void ProjectileGameObject::damage(float val) {
 	if (speed != -1) {
 		kill();
 	}

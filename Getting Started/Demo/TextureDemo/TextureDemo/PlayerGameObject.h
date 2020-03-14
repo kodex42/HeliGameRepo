@@ -28,7 +28,7 @@ public:
 	void changeAcceleration(glm::vec3 newAcceleration);
 	void equip(int index);
 	void powerUp(PowerUpType type);
-	void damage();
+	void damage(float val);
 	char* whatIs();
 	inline void freeze(double time) { lastTimeFrozen = glfwGetTime(); timeFrozen = time; }
 
