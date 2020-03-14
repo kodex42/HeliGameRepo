@@ -343,19 +343,46 @@ void gameLoop(Window& window, Shader& shader, double deltaTime)
 				glm::vec3 pos1 = currentGameObject->getPosition();
 				glm::vec3 pos2 = currentWall->getPosition();
 				float rad1 = currentGameObject->getSize() / 2;
+				float size = currentWall->getSize();
 				//If the wall is solid
 				if (currentWall->getType() == 1) {
-					//If they touch
-					if (pos1.x > pos2.x - 1.0f && pos1.x < pos2.x + 1.0f && pos1.y > pos2.y - 1.0f && pos1.y < pos2.y + 1.0f) {
+					// Set tester position
+					float testX = pos2.x;
+					float testY = pos2.y;
+					// Rebounding directions
+					float dirX = 0;
+					float dirY = 0;
+					if (pos1.x < pos2.x - size/2) { // Player is left from wall 
+						testX = pos2.x - size/2;
+						dirX = -1.0f;
+					}
+					else if (pos1.x >= pos2.x + size/2) { // Player is right from wall
+						testX = pos2.x + size/2;
+						dirX = 1.0f;
+					}
+					if (pos1.y < pos2.y - size/2) { // Player is below wall
+						testY = pos2.y - size/2;
+						dirY = -1.0f;
+					}
+					else if (pos1.y >= pos2.y + size/2) { // Player is above wall
+						testY = pos2.y + size/2;
+						dirY = 1.0f;
+					}
+
+					// Calculate difference between test point and player position
+					float diffX = pos1.x - testX;
+					float diffY = pos1.y - testY;
+					float distSq = pow(diffX, 2) + pow(diffY, 2);
+					if (distSq <= pow(rad1, 2)) { // Standard circle to point collision
 						std::cout << "Touched wall" << std::endl;
 						if (i == 0) {
-							playerRelocate(player);
-							currentGameObject->damage(1.0f);
+							//playerRelocate(player);
+							currentGameObject->setVelocity(glm::vec3(dirX*10, dirY*10, 0));
+							//currentGameObject->damage(1.0f);
 							//glm::vec3 dir = player->getAcceleration();
 							//float ddx = dir.x;
 							//float ddy = dir.y;
 							//currentGameObject->setPosition(pos1 - glm::vec3(ddx * 1.0f, ddy * 1.0f, 0.0));
-							continue;
 						}
 						else {
 							currentGameObject->kill();
