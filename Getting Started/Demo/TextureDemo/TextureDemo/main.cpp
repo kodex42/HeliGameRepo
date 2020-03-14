@@ -347,12 +347,12 @@ void gameLoop(Window& window, Shader& shader, double deltaTime)
 				//If the wall is solid
 				if (currentWall->getType() == 1) {
 					// Set tester position
-					float testX = pos2.x;
-					float testY = pos2.y;
+					float testX = pos1.x;
+					float testY = pos1.y;
 					// Rebounding directions
 					float dirX = 0;
 					float dirY = 0;
-					if (pos1.x < pos2.x - size/2) { // Player is left from wall 
+					if (pos1.x <= pos2.x - size/2) { // Player is left from wall 
 						testX = pos2.x - size/2;
 						dirX = -1.0f;
 					}
@@ -360,7 +360,7 @@ void gameLoop(Window& window, Shader& shader, double deltaTime)
 						testX = pos2.x + size/2;
 						dirX = 1.0f;
 					}
-					if (pos1.y < pos2.y - size/2) { // Player is below wall
+					if (pos1.y <= pos2.y - size/2) { // Player is below wall
 						testY = pos2.y - size/2;
 						dirY = -1.0f;
 					}
@@ -373,7 +373,7 @@ void gameLoop(Window& window, Shader& shader, double deltaTime)
 					float diffX = pos1.x - testX;
 					float diffY = pos1.y - testY;
 					float distSq = pow(diffX, 2) + pow(diffY, 2);
-					if (distSq <= pow(rad1, 2)) { // Standard circle to point collision
+					if (distSq <= pow(rad1,2)) { // Standard circle to point collision
 						std::cout << "Touched wall" << std::endl;
 						if (i == 0) {
 							//playerRelocate(player);
@@ -389,7 +389,7 @@ void gameLoop(Window& window, Shader& shader, double deltaTime)
 						}
 					}
 
-					if (testX == pos2.x && testY == pos2.y) {
+					if (testX == pos1.x && testY == pos1.y) {
 						if (i == 0)
 							playerRelocate(player);
 						else
