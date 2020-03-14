@@ -29,7 +29,8 @@
 #define NUM_WEAPON_TEXTURES 4
 #define NUM_BULLET_TEXTURES 3
 #define NUM_WALL_TEXTURES 3
-#define NUM_OBJECTS NUM_GAME_OBJECTS + NUM_UI_TEXTURES + NUM_WEAPON_TEXTURES + NUM_BULLET_TEXTURES + NUM_WALL_TEXTURES
+#define NUM_POWERUP_TEXTURES 5
+#define NUM_OBJECTS NUM_GAME_OBJECTS + NUM_UI_TEXTURES + NUM_WEAPON_TEXTURES + NUM_BULLET_TEXTURES + NUM_WALL_TEXTURES + NUM_POWERUP_TEXTURES
 
 // Macro for printing exceptions
 #define PrintException(exception_object)\
@@ -141,6 +142,11 @@ void setallTexture(void)
 	setthisTexture(tex[15], "laser.png");
 	setthisTexture(tex[16], "weaponCooldownBar.png");
 	setthisTexture(tex[17], "weaponCooldownBarSegment.png");
+	setthisTexture(tex[18], "powerUpInvincibility.png");
+	setthisTexture(tex[19], "powerUpHealthBoost.png");
+	setthisTexture(tex[20], "powerUpQuadDmg.png");
+	setthisTexture(tex[21], "powerUpFireRate.png");
+	setthisTexture(tex[22], "powerUpCoin.png");
 
 	//glBindTexture(GL_TEXTURE_2D, tex[0]);
 }
@@ -184,7 +190,8 @@ void setup(void)
 	
 	//Set up UI objects
 	for (int i = 0; i < gameObjects.size(); i++) {
-		dynamicUIObjects.push_back(new HealthUI(gameObjects[i]->getPosition(), tex[3], tex[4], size, *(gameObjects[i])));
+		if (gameObjects[i]->whatIs() == "object" || gameObjects[i]->whatIs() == "player")
+			dynamicUIObjects.push_back(new HealthUI(gameObjects[i]->getPosition(), tex[3], tex[4], size, *(gameObjects[i])));
 	}
 
 	staticUIObjects.push_back(new WeaponUI(glm::vec3(-1.0f, -1.875f, 0), tex[16], tex[17], size, *(gameObjects[0])));
@@ -386,6 +393,7 @@ void gameLoop(Window& window, Shader& shader, double deltaTime)
 						PowerUpGameObject* powerUp = (PowerUpGameObject*)otherGameObject;
 						PlayerGameObject* player = (PlayerGameObject*)currentGameObject;
 						player->powerUp(powerUp->getPowerUpType());
+						powerUp->kill();
 					}
 				}
 			}
@@ -494,23 +502,45 @@ void buildMap(std::string map)
 			for (int i = 0; i < line.length(); i++) {
 				float len = 2.0f * i;
 				float hei = 0.0f - (2.0f * j);
-				if (line[i] == 'X') {
+				switch (line[i]) {
+				case 'X':
 					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[12], 6, 1));
-				}
-				else if (line[i] == 'S') {
+					break;
+				case'S':
 					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], 6, 0));
 					gameObjects[0]->setPosition(glm::vec3(len, hei, 0.0f));
-				}
-				else if (line[i] == 'O') {
+					break;
+				case 'c': // Coin
+					gameObjects.push_back(new PowerUpGameObject(glm::vec3(len, hei, 0.0f), tex[22], 6, COIN));
 					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], 6, 0));
-				}
-				else if (line[i] == 'E') {
+					break;
+				case 'f': // Double Fire Rate
+					gameObjects.push_back(new PowerUpGameObject(glm::vec3(len, hei, 0.0f), tex[21], 6, DOUBLE_FIRE_RATE));
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], 6, 0));
+					break;
+				case 'q': // Quad Damage
+					gameObjects.push_back(new PowerUpGameObject(glm::vec3(len, hei, 0.0f), tex[20], 6, QUAD_DAMAGE));
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], 6, 0));
+					break;
+				case 'h': // Health Boost
+					gameObjects.push_back(new PowerUpGameObject(glm::vec3(len, hei, 0.0f), tex[19], 6, HEALTH_BOOST));
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], 6, 0));
+					break;
+				case 'i': // Invincibility
+					gameObjects.push_back(new PowerUpGameObject(glm::vec3(len, hei, 0.0f), tex[18], 6, INVINCIBILITY));
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], 6, 0));
+					break;
+				case 'O':
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], 6, 0));
+					break;
+				case 'E':
 					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], 6, 0));
 					gameObjects.push_back(new GameObject(glm::vec3(len, hei, 0.0f), tex[1], 6));
-				}
-				else if (line[i] == 'T') {
+					break;
+				case 'T':
 					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], 6, 0));
 					gameObjects.push_back(new VortexGameObject(glm::vec3(len, hei, 0.0f), tex[14], 6));
+					break;
 				}
 			}
 			j++;
