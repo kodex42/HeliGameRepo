@@ -377,7 +377,7 @@ void gameLoop(Window& window, Shader& shader, double deltaTime)
 						std::cout << "Touched wall" << std::endl;
 						if (i == 0) {
 							//playerRelocate(player);
-							currentGameObject->setVelocity(glm::vec3(dirX*10, dirY*10, 0));
+							currentGameObject->setVelocity(glm::vec3(dirX, dirY, 0));
 							//currentGameObject->damage(1.0f);
 							//glm::vec3 dir = player->getAcceleration();
 							//float ddx = dir.x;
@@ -385,8 +385,15 @@ void gameLoop(Window& window, Shader& shader, double deltaTime)
 							//currentGameObject->setPosition(pos1 - glm::vec3(ddx * 1.0f, ddy * 1.0f, 0.0));
 						}
 						else {
-							currentGameObject->kill();
+							currentGameObject->damage(1.0f);
 						}
+					}
+
+					if (testX == pos2.x && testY == pos2.y) {
+						if (i == 0)
+							playerRelocate(player);
+						else
+							currentGameObject->damage(1.0f);
 					}
 				}
 			}
