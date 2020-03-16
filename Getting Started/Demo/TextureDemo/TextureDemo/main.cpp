@@ -7,6 +7,7 @@
 #include <GL/glew.h> // window management library
 #include <GL/glfw3.h>
 #include <glm/glm.hpp>
+//#include <GL/glut.h> //Library for displaying text on screen
 #include <glm/gtc/matrix_transform.hpp> //
 #include <SOIL/SOIL.h> // read image file
 #include <chrono>
@@ -19,6 +20,7 @@
 #include "UIObject.h"
 #include "HealthUI.h"
 #include "WeaponUI.h"
+#include "CoinUI.h"
 #include "ProjectileGameObject.h"
 #include "WallGameObject.h"
 #include "VortexGameObject.h"
@@ -30,7 +32,8 @@
 #define NUM_BULLET_TEXTURES 3
 #define NUM_WALL_TEXTURES 3
 #define NUM_POWERUP_TEXTURES 5
-#define NUM_OBJECTS NUM_GAME_OBJECTS + NUM_UI_TEXTURES + NUM_WEAPON_TEXTURES + NUM_BULLET_TEXTURES + NUM_WALL_TEXTURES + NUM_POWERUP_TEXTURES
+#define NUM_NUMBERS 10
+#define NUM_OBJECTS NUM_GAME_OBJECTS + NUM_UI_TEXTURES + NUM_WEAPON_TEXTURES + NUM_BULLET_TEXTURES + NUM_WALL_TEXTURES + NUM_POWERUP_TEXTURES + NUM_NUMBERS
 
 // Macro for printing exceptions
 #define PrintException(exception_object)\
@@ -60,6 +63,8 @@ std::vector<GameObject*> gameObjects;
 std::vector<UIObject*> dynamicUIObjects;
 std::vector<UIObject*> staticUIObjects;
 std::vector<GameObject*> MapObjects;
+std::vector<GLuint*> numberTextures;
+
 
 // Create the geometry for a square (with two triangles)
 // Return the number of array elements that form the square
@@ -147,8 +152,20 @@ void setallTexture(void)
 	setthisTexture(tex[20], "powerUpQuadDmg.png");
 	setthisTexture(tex[21], "powerUpFireRate.png");
 	setthisTexture(tex[22], "powerUpCoin.png");
+	setthisTexture(tex[23], "Consolas/0.png");
+	setthisTexture(tex[24], "Consolas/1.png");
+	setthisTexture(tex[25], "Consolas/2.png");
+	setthisTexture(tex[26], "Consolas/3.png");
+	setthisTexture(tex[27], "Consolas/4.png");
+	setthisTexture(tex[28], "Consolas/5.png");
+	setthisTexture(tex[29], "Consolas/6.png");
+	setthisTexture(tex[30], "Consolas/7.png");
+	setthisTexture(tex[31], "Consolas/8.png");
+	setthisTexture(tex[32], "Consolas/9.png");
 
-	//glBindTexture(GL_TEXTURE_2D, tex[0]);
+	for (int i = 0; i < 10; i++) {
+		numberTextures.push_back(new GLuint(tex[23+i]));
+	}
 }
 
 void setup(void)
@@ -195,6 +212,7 @@ void setup(void)
 	}
 
 	staticUIObjects.push_back(new WeaponUI(glm::vec3(-1.0f, -1.875f, 0), tex[16], tex[17], size, *(gameObjects[0])));
+	staticUIObjects.push_back(new CoinUI(glm::vec3(1.0f, 1.75f, 0), tex[22], size, *(gameObjects[0]), numberTextures));
 }
 
 void shoot(Weapon* w, glm::vec3 startingPos, double dx, double dy) {
@@ -376,13 +394,7 @@ void gameLoop(Window& window, Shader& shader, double deltaTime)
 					if (distSq <= pow(rad1,2)) { // Standard circle to point collision
 						std::cout << "Touched wall" << std::endl;
 						if (i == 0) {
-							//playerRelocate(player);
 							currentGameObject->setVelocity(glm::vec3(dirX, dirY, 0));
-							//currentGameObject->damage(1.0f);
-							//glm::vec3 dir = player->getAcceleration();
-							//float ddx = dir.x;
-							//float ddy = dir.y;
-							//currentGameObject->setPosition(pos1 - glm::vec3(ddx * 1.0f, ddy * 1.0f, 0.0));
 						}
 						else {
 							currentGameObject->damage(1.0f);
@@ -601,10 +613,6 @@ void nextLevel() {
 	for (int i = 0; i < gameObjects.size(); i++) {
 		dynamicUIObjects.push_back(new HealthUI(gameObjects[i]->getPosition(), tex[3], tex[4], 6, *(gameObjects[i])));
 	}
-}
-
-void relocatePlayer(PlayerGameObject* player)
-{
 }
 
 // Main function that builds and runs the game

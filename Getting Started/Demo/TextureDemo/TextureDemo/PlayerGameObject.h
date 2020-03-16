@@ -20,6 +20,7 @@ public:
 
 	// Getters
 	inline Weapon* getEquippedWeapon() { return equipped; }
+	inline int getWallet() { return wallet; }
 
 	// Setters
 	void giveWeapon(Weapon& weap);
