@@ -215,7 +215,7 @@ void setup(void)
 	}
 
 	staticUIObjects.push_back(new WeaponUI(glm::vec3(-1.0f, -1.875f, 0), tex[16], tex[17], size, *(gameObjects[0])));
-	staticUIObjects.push_back(new CoinUI(glm::vec3(1.0f, 1.75f, 0), tex[22], size, *(gameObjects[0]), numberTextures));
+	staticUIObjects.push_back(new CoinUI(glm::vec3(1.5f, -1.75f, 0), tex[22], size, *(gameObjects[0]), numberTextures));
 }
 
 void shoot(Weapon* w, glm::vec3 startingPos, double dx, double dy) {

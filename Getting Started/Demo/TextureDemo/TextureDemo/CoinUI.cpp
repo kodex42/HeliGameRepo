@@ -1,7 +1,7 @@
 #include "CoinUI.h"
 
 CoinUI::CoinUI(glm::vec3& entityPos, GLuint entityTexture, GLint entityNumElements, GameObject& ref, const std::vector<GLuint*>& vect) : UIObject(entityPos, entityTexture, entityNumElements), player((PlayerGameObject&)ref){
-	objectSize = 0.5f;
+	objectSize = 0.25f;
 	numbers = vect;
 }
 
@@ -43,7 +43,7 @@ void CoinUI::render(Shader& shader) {
 		glBindTexture(GL_TEXTURE_2D, tempTexture);
 
 		//Determining the position of these values and putting them on screen
-		tempPosition = position + glm::vec3(0.35f+0.2f*i, 0.0f, 0.0f);
+		tempPosition = position + glm::vec3(0.2f+0.2f*i, 0.0f, 0.0f);
 		glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), tempPosition);
 		glm::mat4 transformationMatrix = translationMatrix * scaleMatrix;
 		shader.setUniformMat4("transformationMatrix", transformationMatrix);

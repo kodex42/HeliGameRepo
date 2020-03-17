@@ -26,9 +26,9 @@ PlayerGameObject::PlayerGameObject(glm::vec3 &entityPos, GLuint entityTexture, G
 	weapons = new std::vector<Weapon*>();
 	numWeapons = 0;
 	// Weapon(lifespan, weight, cooldown, speed, radius, name, isFriendly);
-	Weapon machineGun	= Weapon(-1.0f, 0.0f, 0.5f, 4.0f, 0.1f, "machineGun", true);
-	Weapon rockets		= Weapon(1.0f, 0.1f, 2.5f, 3.5f, 1.0f, "rockets", true);
-	Weapon scudMissles	= Weapon(1.8f, 3.0f, 5.0f, 1.0f, 1.5f, "scudMissles", true);
+	Weapon machineGun	= Weapon(-1.0f, 0.0f, 0.5f, 6.0f, 0.1f, "machineGun", true);
+	Weapon rockets		= Weapon(1.0f, 0.1f, 2.5f, 5.5f, 1.0f, "rockets", true);
+	Weapon scudMissles	= Weapon(1.8f, 3.0f, 5.0f, 3.0f, 1.5f, "scudMissles", true);
 	Weapon laser		= Weapon(3.0f, 0.0f, 20.0f, -1.0f, 0.3f, "laser", true);
 	// Give the player these weapons
 	giveWeapon(machineGun);
