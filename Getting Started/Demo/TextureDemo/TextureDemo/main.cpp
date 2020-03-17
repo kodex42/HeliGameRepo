@@ -197,13 +197,6 @@ void setup(void)
 	PlayerGameObject* player = new PlayerGameObject(glm::vec3(0.0f, 0.0f, 0.0f), tex[0], size, extraTextures);
 	// Note, player object should always be the first object in the game object vector 
 	gameObjects.push_back(player);
-	
-	// Setup other objects
-	//**Add new enemies by modifying the 'buildMap' function below and through editing the text file called 'map1'**
-	/*
-	gameObjects.push_back(new GameObject(glm::vec3(-1.0f, 1.0f, 0.0f), tex[1], size));
-	gameObjects.push_back(new GameObject(glm::vec3(1.0f, -0.5f, 0.0f), tex[2], size));
-	*/
 
 	//Builds the first map
 	buildMap("map1.txt");
@@ -585,7 +578,7 @@ void buildMap(std::string map)
 				case 'E':
 					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], 6, 0));
 					//gameObjects.push_back(new GameObject(glm::vec3(len, hei, 0.0f), tex[1], 6));
-					gameObjects.push_back(new TurretGameObject(glm::vec3(len, hei, 0.0f), tex[33], tex[34], 6, *gameObjects[0]));
+					gameObjects.push_back(new TurretGameObject(glm::vec3(len, hei, 0.0f), tex[33], tex[34], 6, *gameObjects[0], shoot));
 					break;
 				case 'T':
 					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], 6, 0));

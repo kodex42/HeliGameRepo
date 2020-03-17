@@ -1,15 +1,27 @@
 #include "TurretGameObject.h"
 
-TurretGameObject::TurretGameObject(glm::vec3& entityPos, GLuint entityTexture, GLuint turretTexture, GLint entityNumElements, GameObject& ref) : GameObject(entityPos, entityTexture, entityNumElements), turretTex(turretTexture), player(ref) {
+TurretGameObject::TurretGameObject(glm::vec3& entityPos, GLuint entityTexture, GLuint turretTexture, GLint entityNumElements, GameObject& ref, void shoot(Weapon* w, glm::vec3 startingPos, double dx, double dy)) : GameObject(entityPos, entityTexture, entityNumElements), turretTex(turretTexture), player(ref) {
 	objectSize = 2.0f;
 	aimAngle = 90;
+	shotCD = 3;
+	shootGun = shoot;
+	isFriendly = false;
 }
 
 void TurretGameObject::update(double deltaTime) {
 	GameObject::update(deltaTime);
+	shotCD = shotCD - deltaTime;
 	glm::vec3 pos = player.getPosition();
 	double angle = atan2(pos.y - position.y, pos.x - position.x) * 180 / PI;
 	setAimAngle(angle);
+	if (shotCD < 0.1) {
+		//shoot(w, player->getPosition() + glm::vec3(0.05f, 0.5f, 0), 0, 1);
+		double rad = glm::radians(angle);
+		double x = cos(rad);
+		double y = sin(rad);
+		(*shootGun)(gun, getPosition(), x, y);
+		shotCD = 2;
+	}
 }
 
 void TurretGameObject::render(Shader& shader) {
