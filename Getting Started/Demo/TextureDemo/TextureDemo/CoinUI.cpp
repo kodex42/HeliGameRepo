@@ -51,14 +51,4 @@ void CoinUI::render(Shader& shader) {
 		// Draw the entity
 		glDrawElements(GL_TRIANGLES, numElements, GL_UNSIGNED_INT, 0);
 	}
-
-
-	// Bind the entities texture
-	/*glBindTexture(GL_TEXTURE_2D, backgroundSegment);
-	shader.setUniformMat4("transformationMatrix", glm::translate(glm::mat4(1.0f), glm::vec3(-2.0f, 0, 0))
-		* glm::translate(glm::mat4(1.0f), glm::vec3(cooldown * 2, 0, 0))
-		* transformationMatrix);
-	shader.setUniform4f("color_base", glm::vec4(0, 0, 0, 0));*/
-	// Draw the entity
-	glDrawElements(GL_TRIANGLES, numElements, GL_UNSIGNED_INT, 0);
 }

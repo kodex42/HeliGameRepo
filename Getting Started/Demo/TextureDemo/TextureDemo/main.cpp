@@ -25,8 +25,9 @@
 #include "WallGameObject.h"
 #include "VortexGameObject.h"
 #include "PowerUpGameObject.h"
+#include "TurretGameObject.h"
 
-#define NUM_GAME_OBJECTS 4
+#define NUM_GAME_OBJECTS 6
 #define NUM_UI_TEXTURES 4
 #define NUM_WEAPON_TEXTURES 4
 #define NUM_BULLET_TEXTURES 3
@@ -162,6 +163,8 @@ void setallTexture(void)
 	setthisTexture(tex[30], "Consolas/7.png");
 	setthisTexture(tex[31], "Consolas/8.png");
 	setthisTexture(tex[32], "Consolas/9.png");
+	setthisTexture(tex[33], "turretPlate.png");
+	setthisTexture(tex[34], "turret.png");
 
 	for (int i = 0; i < 10; i++) {
 		numberTextures.push_back(new GLuint(tex[23+i]));
@@ -581,7 +584,8 @@ void buildMap(std::string map)
 					break;
 				case 'E':
 					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], 6, 0));
-					gameObjects.push_back(new GameObject(glm::vec3(len, hei, 0.0f), tex[1], 6));
+					//gameObjects.push_back(new GameObject(glm::vec3(len, hei, 0.0f), tex[1], 6));
+					gameObjects.push_back(new TurretGameObject(glm::vec3(len, hei, 0.0f), tex[33], tex[34], 6, *gameObjects[0]));
 					break;
 				case 'T':
 					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], 6, 0));

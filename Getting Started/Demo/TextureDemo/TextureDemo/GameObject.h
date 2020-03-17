@@ -57,7 +57,7 @@ public:
 
 	// Member functions
 	virtual char* whatIs();
-	virtual inline int getType() { return -1; }
+	virtual inline int getType() { return -1; } //Returns the wall or enemy type as an int
 
 protected:
 	// Object's Transform Variables
