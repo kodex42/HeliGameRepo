@@ -26,8 +26,9 @@
 #include "VortexGameObject.h"
 #include "PowerUpGameObject.h"
 #include "TurretGameObject.h"
+#include "ChaserGameObject.h"
 
-#define NUM_GAME_OBJECTS 6
+#define NUM_GAME_OBJECTS 7
 #define NUM_UI_TEXTURES 4
 #define NUM_WEAPON_TEXTURES 4
 #define NUM_BULLET_TEXTURES 3
@@ -167,6 +168,7 @@ void setallTexture(void)
 	setthisTexture(tex[34], "turret.png");
 	setthisTexture(tex[35], "rockWall.png");
 	setthisTexture(tex[36], "dirtWall.png");
+	setthisTexture(tex[37], "chaser.png");
 
 	for (int i = 0; i < 10; i++) {
 		numberTextures.push_back(new GLuint(tex[23+i]));
@@ -349,8 +351,8 @@ void gameLoop(Window& window, Shader& shader, double deltaTime)
 		// Update game objects
 		currentGameObject->update(deltaTime);
 
-		//Check for collision with walls if the item is a projectile or a player
-		if (i == 0 || currentGameObject->getType() == 1) {
+		//Check for collision with walls if the item is a projectile, chaser, or a player
+		if (i == 0 || currentGameObject->getType() == 1 || currentGameObject->getType() == 11) {
 			for (int j = 0; j < MapObjects.size(); j++) {
 				GameObject* currentWall = MapObjects[j];
 				PlayerGameObject* player = (PlayerGameObject*)gameObjects[0];
@@ -410,6 +412,9 @@ void gameLoop(Window& window, Shader& shader, double deltaTime)
 							currentGameObject->setVelocity(glm::vec3(dirX, dirY, 0));
 
 							player->changeAcceleration(glm::vec3(ddx, ddy, 0));
+						}
+						else if (currentGameObject->getType() == 11) {
+							currentGameObject->setPosition(currentGameObject->getPosition() - currentGameObject->getVelocity());
 						}
 						else {
 							currentGameObject->damage(1.0f);
@@ -599,6 +604,10 @@ void buildMap(std::string map)
 					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], tex[13], 6, 0));
 					//gameObjects.push_back(new GameObject(glm::vec3(len, hei, 0.0f), tex[1], 6));
 					gameObjects.push_back(new TurretGameObject(glm::vec3(len, hei, 0.0f), tex[33], tex[34], 6, *gameObjects[0], shoot));
+					break;
+				case 'e': //Weaker enemy that does not fire at the player
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], tex[13], 6, 0));
+					gameObjects.push_back(new ChaserGameObject(glm::vec3(len, hei, 0.0f), tex[37], 6, *gameObjects[0]));
 					break;
 				case 'T': //Vortex
 					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], tex[13], 6, 0));
