@@ -31,7 +31,7 @@
 #define NUM_UI_TEXTURES 4
 #define NUM_WEAPON_TEXTURES 4
 #define NUM_BULLET_TEXTURES 3
-#define NUM_WALL_TEXTURES 3
+#define NUM_WALL_TEXTURES 5
 #define NUM_POWERUP_TEXTURES 5
 #define NUM_NUMBERS 10
 #define NUM_OBJECTS NUM_GAME_OBJECTS + NUM_UI_TEXTURES + NUM_WEAPON_TEXTURES + NUM_BULLET_TEXTURES + NUM_WALL_TEXTURES + NUM_POWERUP_TEXTURES + NUM_NUMBERS
@@ -165,6 +165,8 @@ void setallTexture(void)
 	setthisTexture(tex[32], "Consolas/9.png");
 	setthisTexture(tex[33], "turretPlate.png");
 	setthisTexture(tex[34], "turret.png");
+	setthisTexture(tex[35], "rockWall.png");
+	setthisTexture(tex[36], "dirtWall.png");
 
 	for (int i = 0; i < 10; i++) {
 		numberTextures.push_back(new GLuint(tex[23+i]));
@@ -352,6 +354,9 @@ void gameLoop(Window& window, Shader& shader, double deltaTime)
 			for (int j = 0; j < MapObjects.size(); j++) {
 				GameObject* currentWall = MapObjects[j];
 				PlayerGameObject* player = (PlayerGameObject*)gameObjects[0];
+				glm::vec3 currAcc = player->getAcceleration();
+				float ddx = currAcc.x;
+				float ddy = currAcc.y;
 
 				//Get positions
 				glm::vec3 pos1 = currentGameObject->getPosition();
@@ -359,41 +364,56 @@ void gameLoop(Window& window, Shader& shader, double deltaTime)
 				float rad1 = currentGameObject->getSize() / 2;
 				float size = currentWall->getSize();
 				//If the wall is solid
-				if (currentWall->getType() == 1) {
+				if (currentWall->getType() != 0) {
 					// Set tester position
 					float testX = pos1.x;
 					float testY = pos1.y;
 					// Rebounding directions
 					float dirX = 0;
 					float dirY = 0;
-					if (pos1.x <= pos2.x - size/2) { // Player is left from wall 
-						testX = pos2.x - size/2;
+					if (pos1.x <= pos2.x - size / 2) { // Player is left from wall 
+						testX = pos2.x - size / 2;
 						dirX = -1.0f;
+						if (i == 0) {
+							ddx = (ddx * -1.0) / 2;
+						}
 					}
-					else if (pos1.x >= pos2.x + size/2) { // Player is right from wall
-						testX = pos2.x + size/2;
+					else if (pos1.x >= pos2.x + size / 2) { // Player is right from wall
+						testX = pos2.x + size / 2;
 						dirX = 1.0f;
+						if (i == 0) {
+							ddx = (ddx * -1.0) / 2;
+						}
 					}
-					if (pos1.y <= pos2.y - size/2) { // Player is below wall
-						testY = pos2.y - size/2;
+					if (pos1.y <= pos2.y - size / 2) { // Player is below wall
+						testY = pos2.y - size / 2;
 						dirY = -1.0f;
+						if (i == 0) {
+							ddy = (ddy * -1.0) / 2;
+						}
 					}
-					else if (pos1.y >= pos2.y + size/2) { // Player is above wall
-						testY = pos2.y + size/2;
+					else if (pos1.y >= pos2.y + size / 2) { // Player is above wall
+						testY = pos2.y + size / 2;
 						dirY = 1.0f;
+						if (i == 0) {
+							ddy = (ddy * -1.0) / 2;
+						}
 					}
 
 					// Calculate difference between test point and player position
 					float diffX = pos1.x - testX;
 					float diffY = pos1.y - testY;
 					float distSq = pow(diffX, 2) + pow(diffY, 2);
-					if (distSq <= pow(rad1,2)) { // Standard circle to point collision
+					if (distSq <= pow(rad1, 2)) { // Standard circle to point collision
 						std::cout << "Touched wall" << std::endl;
 						if (i == 0) {
 							currentGameObject->setVelocity(glm::vec3(dirX, dirY, 0));
+
+							player->changeAcceleration(glm::vec3(ddx, ddy, 0));
 						}
 						else {
 							currentGameObject->damage(1.0f);
+							currentWall->damage(1.0f);
 						}
 					}
 
@@ -545,44 +565,52 @@ void buildMap(std::string map)
 				float len = 2.0f * i;
 				float hei = 0.0f - (2.0f * j);
 				switch (line[i]) {
-				case 'X':
-					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[12], 6, 1));
+				case 'X': //Invincible wall
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[12], tex[13], 6, 1));
 					break;
-				case'S':
-					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], 6, 0));
+				case'S': //Player Spawn
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], tex[13], 6, 0));
 					gameObjects[0]->setPosition(glm::vec3(len, hei, 0.0f));
 					break;
 				case 'c': // Coin
 					gameObjects.push_back(new PowerUpGameObject(glm::vec3(len, hei, 0.0f), tex[22], 6, COIN));
-					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], 6, 0));
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], tex[13], 6, 0));
 					break;
 				case 'f': // Double Fire Rate
 					gameObjects.push_back(new PowerUpGameObject(glm::vec3(len, hei, 0.0f), tex[21], 6, DOUBLE_FIRE_RATE));
-					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], 6, 0));
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], tex[13], 6, 0));
 					break;
 				case 'q': // Quad Damage
 					gameObjects.push_back(new PowerUpGameObject(glm::vec3(len, hei, 0.0f), tex[20], 6, QUAD_DAMAGE));
-					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], 6, 0));
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], tex[13], 6, 0));
 					break;
 				case 'h': // Health Boost
 					gameObjects.push_back(new PowerUpGameObject(glm::vec3(len, hei, 0.0f), tex[19], 6, HEALTH_BOOST));
-					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], 6, 0));
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], tex[13], 6, 0));
 					break;
 				case 'i': // Invincibility
 					gameObjects.push_back(new PowerUpGameObject(glm::vec3(len, hei, 0.0f), tex[18], 6, INVINCIBILITY));
-					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], 6, 0));
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], tex[13], 6, 0));
 					break;
-				case 'O':
-					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], 6, 0));
+				case 'O': //Open space
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], tex[13], 6, 0));
 					break;
-				case 'E':
-					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], 6, 0));
+				case 'E': //Generic enemy that fires at player
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], tex[13], 6, 0));
 					//gameObjects.push_back(new GameObject(glm::vec3(len, hei, 0.0f), tex[1], 6));
 					gameObjects.push_back(new TurretGameObject(glm::vec3(len, hei, 0.0f), tex[33], tex[34], 6, *gameObjects[0], shoot));
 					break;
-				case 'T':
-					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], 6, 0));
+				case 'T': //Vortex
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], tex[13], 6, 0));
 					gameObjects.push_back(new VortexGameObject(glm::vec3(len, hei, 0.0f), tex[14], 6));
+					break;
+				case 'D': //Dirt wall
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[36], tex[36], 6, 2));
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], tex[13], 6, 0));
+					break;
+				case 'R': //Rock wall
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[35], tex[36], 6, 5));
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], tex[13], 6, 0));
 					break;
 				}
 			}

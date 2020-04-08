@@ -1,8 +1,9 @@
 #include "WallGameObject.h"
 
-WallGameObject::WallGameObject(glm::vec3& entityPos, GLuint entityTexture, GLint entityNumElements, GLint type) : GameObject(entityPos, entityTexture, entityNumElements) {
+WallGameObject::WallGameObject(glm::vec3& entityPos, GLuint entityTexture, GLuint entityTexture2, GLint entityNumElements, GLint type) : GameObject(entityPos, entityTexture, entityNumElements) {
 	wallType = type;
 	objectSize = 2.0f;
+	backupTex = entityTexture2;
 }
 
 //Wall type 0 is floor
@@ -21,7 +22,16 @@ void WallGameObject::render(Shader& shader) {
 
 void WallGameObject::damage(float val) {
 	if (wallType == 2) {
-		GameObject::damage(val);
+		health -= 1.0;
+		if (health <= 0) GameObject::kill();
+	}
+	else if (wallType == 5) {
+		health -= 1.0;
+		if (health <= 0) {
+			health = 4;
+			texture = backupTex;
+			wallType = 2;
+		}
 	}
 }
 

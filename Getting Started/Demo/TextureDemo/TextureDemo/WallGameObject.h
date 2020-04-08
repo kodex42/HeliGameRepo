@@ -4,7 +4,8 @@
 
 class WallGameObject : public GameObject {
 public:
-	WallGameObject(glm::vec3& entityPos, GLuint entityTexture, GLint entityNumElements, GLint type);
+	//WallGameObject(glm::vec3& entityPos, GLuint entityTexture, GLint entityNumElements, GLint type);
+	WallGameObject(glm::vec3& entityPos, GLuint entityTexture, GLuint entityTexture2, GLint entityNumElements, GLint type);
 
 	// Overrides
 	void update(double deltaTime);
@@ -17,4 +18,5 @@ public:
 private:
 	int wallType;
 	int health = 5;
+	GLuint backupTex;
 };
