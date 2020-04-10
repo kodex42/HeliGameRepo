@@ -84,8 +84,7 @@ void ProjectileGameObject::kill() {
 }
 
 void ProjectileGameObject::levelWeapon(bool isKill) {
-	// If the projectile killed, level up based on radius. If not, level up by 1
-	firedFrom.proficiency += isKill ? 10 * firedFrom.radius : 5 * firedFrom.radius;
+	firedFrom.proficiency += isKill ? 10 * firedFrom.radius : 0.5;
 	if (firedFrom.proficiency > 100 && firedFrom.level < 1) {
 		firedFrom.level++;
 		firedFrom.damage *= 1.5; // 50% more damage

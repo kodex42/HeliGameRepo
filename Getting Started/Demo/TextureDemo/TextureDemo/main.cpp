@@ -405,7 +405,7 @@ void gameLoop(Window& window, Shader& shader, double deltaTime)
 					float diffY = pos1.y - testY;
 					float distSq = pow(diffX, 2) + pow(diffY, 2);
 					if (distSq <= pow(rad1, 2)) { // Standard circle to point collision
-						std::cout << "Touched wall" << std::endl;
+						//std::cout << "Touched wall" << std::endl;
 						if (i == 0) {
 							currentGameObject->setVelocity(glm::vec3(dirX, dirY, 0));
 
@@ -441,15 +441,15 @@ void gameLoop(Window& window, Shader& shader, double deltaTime)
 					&& !currentGameObject->isDamaged() && !otherGameObject->isDamaged()) {
 					currentGameObject->damage(otherGameObject->getDamage());
 					otherGameObject->damage(currentGameObject->getDamage());
-					if (strcmp(currentGameObject->whatIs(), "Projectile") == 0 && otherGameObject->getIsAlive()) {
-						ProjectileGameObject* proj = (ProjectileGameObject*) currentGameObject;
+					if (strcmp(otherGameObject->whatIs(), "Projectile") == 0 && !currentGameObject->getIsAlive()) {
+						ProjectileGameObject* proj = (ProjectileGameObject*) otherGameObject;
 						proj->levelWeapon(true);
 					}
 				}
 
 				if (otherGameObject->getIsFriendly() && (i == 0)) {
 					char* touched = otherGameObject->whatIs();
-					std::cout << "Touched " << touched << std::endl;
+					//std::cout << "Touched " << touched << std::endl;
 
 					if (strcmp("vortex", touched) == 0) {
 						nextLevel();
@@ -564,7 +564,7 @@ void buildMap(std::string map)
 	{
 		while (getline(myfile, line))
 		{
-			std::cout << line << std::endl;
+			//std::cout << line << std::endl;
 			for (int i = 0; i < line.length(); i++) {
 				float len = 2.0f * i;
 				float hei = 0.0f - (2.0f * j);
@@ -622,7 +622,7 @@ void buildMap(std::string map)
 		}
 		myfile.close();
 	}
-	else std::cout << "Unable to open MAP file";
+	//else std::cout << "Unable to open MAP file";
 }
 
 void nextLevel() {

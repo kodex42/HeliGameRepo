@@ -28,7 +28,7 @@ PlayerGameObject::PlayerGameObject(glm::vec3 &entityPos, GLuint entityTexture, G
 	// Weapon(lifespan, weight, cooldown, speed, radius, name, isFriendly);
 	Weapon machineGun	= Weapon(-1.0f, 0.0f, 0.5f, 6.0f, 0.1f, "machineGun", true);
 	Weapon rockets		= Weapon(1.0f, 0.1f, 1.5f, 5.5f, 1.0f, "rockets", true);
-	Weapon scudMissles	= Weapon(1.8f, 3.0f, 3.0f, 3.0f, 3.5f, "scudMissles", true);
+	Weapon scudMissles	= Weapon(1.8f, 2.0f, 3.0f, 3.0f, 3.5f, "scudMissles", true);
 	Weapon laser		= Weapon(3.0f, 0.0f, 20.0f, -1.0f, 0.3f, "laser", true);
 	// Give the player these weapons
 	giveWeapon(machineGun);
@@ -151,10 +151,7 @@ void PlayerGameObject::render(Shader &shader) {
 	}
 
 	glm::mat4 playerTransformation = playerDamageOffset * playerTranslation * playerRotation * playerScale;
-
-	// Invincibility Rainbow Effect
-	glm::vec4 colorBase = lastTimeMadeInvincible + timeMadeInvincible > time ? glm::vec4(pow(cos(time*2), 2), pow(sin(time*2), 2), pow(tan(time*2) / 2, 2), 1) : glm::vec4(0, 0, 0, 0);
-	shader.setUniform4f("color_base", colorBase);
+	glm::vec4 colorBase;
 	// ---------- DRAW WEAPON ----------
 	if (numWeapons > 0) {
 		int texIndex = 0;
@@ -170,13 +167,34 @@ void PlayerGameObject::render(Shader &shader) {
 			* glm::translate(glm::mat4(1.0f), glm::vec3(0.25f, 0, 0)); // Translate to axle
 		glm::mat4 weaponScale = glm::scale(glm::mat4(1.0f), glm::vec3(0.8f, 0.7f, 0));
 		glm::mat4 weaponTransformation = playerDamageOffset * playerTranslation * weaponTranslation * weaponRotation * weaponScale;
-
+		
+		switch (equipped->level) {
+		case 0:
+			colorBase = glm::vec4(0.15, 0.25, 0, 1);
+			break;
+		case 1:
+			colorBase = glm::vec4(0, 0.11, 0.2175, 1);
+			break;
+		case 2:
+			colorBase = glm::vec4(0.16, 0.0525, 0.2325, 1);
+			break;
+		case 3:
+			colorBase = glm::vec4(0.25, 0.125, 0, 1);
+			break;
+		default:
+			colorBase = glm::vec4(0, 0, 0, 0);
+		}
+		shader.setUniform4f("color_base", colorBase);
 		// Bind the entities texture
 		glBindTexture(GL_TEXTURE_2D, *extraTextures[texIndex]);
 		shader.setUniformMat4("transformationMatrix", weaponTransformation);
 		// Draw the entity
 		glDrawElements(GL_TRIANGLES, numElements, GL_UNSIGNED_INT, 0);
 	}
+
+	// Invincibility Rainbow Effect
+	colorBase = lastTimeMadeInvincible + timeMadeInvincible > time ? glm::vec4(pow(cos(time * 2), 2), pow(sin(time * 2), 2), pow(tan(time * 2) / 2, 2), 1) : glm::vec4(0, 0, 0, 0);
+	shader.setUniform4f("color_base", colorBase);
 
 	// ---------- DRAW PLAYER ----------
 	// Bind the entities texture
