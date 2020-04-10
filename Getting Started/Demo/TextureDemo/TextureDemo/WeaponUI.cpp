@@ -21,6 +21,7 @@ void WeaponUI::render(Shader& shader) {
 	glBindTexture(GL_TEXTURE_2D, texture);
 	shader.setUniformMat4("transformationMatrix", transformationMatrix);
 	shader.setUniform4f("color_base", glm::vec4(0, 0, 0, 0));
+	
 	// Draw the entity
 	glDrawElements(GL_TRIANGLES, numElements, GL_UNSIGNED_INT, 0);
 
@@ -35,7 +36,24 @@ void WeaponUI::render(Shader& shader) {
 	shader.setUniformMat4("transformationMatrix", glm::translate(glm::mat4(1.0f), glm::vec3(-2.0f, 0, 0))
 		* glm::translate(glm::mat4(1.0f), glm::vec3(cooldown * 2, 0, 0))
 		* transformationMatrix);
-	shader.setUniform4f("color_base", glm::vec4(0, 0, 0, 0));
+	glm::vec4 colorBase;
+	switch (player.getEquippedWeapon()->level) {
+	case 0:
+		colorBase = glm::vec4(0.12, 1, 0, 1);
+		break;
+	case 1:
+		colorBase = glm::vec4(0, 0.44, 0.87, 1);
+		break;
+	case 2:
+		colorBase = glm::vec4(0.64, 0.21, 0.93, 1);
+		break;
+	case 3:
+		colorBase = glm::vec4(1, 0.5, 0, 1);
+		break;
+	default:
+		colorBase = glm::vec4(0, 0, 0, 0);
+	}
+	shader.setUniform4f("color_base", colorBase);
 	// Draw the entity
 	glDrawElements(GL_TRIANGLES, numElements, GL_UNSIGNED_INT, 0);
 }

@@ -2,10 +2,11 @@
 
 #include "GameObject.h"
 
-#define MAX_VEL_X 3
-#define MIN_VEL_X -3
-#define MAX_VEL_Y 3
-#define MIN_VEL_Y -3
+#define MAX_VEL 4
+#define MAX_VEL_X MAX_VEL
+#define MIN_VEL_X -MAX_VEL
+#define MAX_VEL_Y MAX_VEL
+#define MIN_VEL_Y -MAX_VEL
 #define FRICTION 0.1f
 
 // Inherits from GameObject
