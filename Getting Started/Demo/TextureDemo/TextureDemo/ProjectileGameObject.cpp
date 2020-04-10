@@ -16,6 +16,8 @@ ProjectileGameObject::ProjectileGameObject(glm::vec3 & entityPos, GLuint entityT
 	if (x == -1) angle = angle + 180;
 	if (y == 1) angle = angle + 90;
 	if (y == -1) angle = angle + 270;
+
+	levelWeapon(false); // Weapon was just fired
 }
 
 void ProjectileGameObject::update(double deltaTime) {
@@ -78,5 +80,36 @@ void ProjectileGameObject::kill() {
 		texture = explosion;
 	} else {
 		GameObject::kill();
+	}
+}
+
+void ProjectileGameObject::levelWeapon(bool isKill) {
+	// If the projectile killed, level up based on radius. If not, level up by 1
+	firedFrom.proficiency += isKill ? 10 * firedFrom.radius : 5 * firedFrom.radius;
+	if (firedFrom.proficiency > 100 && firedFrom.level < 1) {
+		firedFrom.level++;
+		firedFrom.damage *= 1.5; // 50% more damage
+	}
+	if (firedFrom.proficiency > 200 && firedFrom.level < 2) {
+		firedFrom.level++;
+		firedFrom.cooldown /= 1.5; // 33% faster fire rate
+		if (firedFrom.speed != -1)
+			firedFrom.speed *= 2; // 100% faster projectile speed
+		else {
+			firedFrom.lifespan /= 2; // 50% less fire time for laser = more movement uptime
+			firedFrom.cooldown /= 1.5; // Additional multiplicative 33% faster fire rate
+		}
+	}
+	if (firedFrom.proficiency > 300 && firedFrom.level < 3) {
+		firedFrom.level++;
+		// Flat all stats up
+		firedFrom.damage += 1;
+		firedFrom.cooldown -= 0.02;
+		firedFrom.radius += 0.5;
+		if (firedFrom.speed != -1)
+			firedFrom.speed += 5;
+		else {
+			firedFrom.damage += 2;
+		}
 	}
 }

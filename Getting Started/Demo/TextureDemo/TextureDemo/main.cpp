@@ -441,6 +441,10 @@ void gameLoop(Window& window, Shader& shader, double deltaTime)
 					&& !currentGameObject->isDamaged() && !otherGameObject->isDamaged()) {
 					currentGameObject->damage(otherGameObject->getDamage());
 					otherGameObject->damage(currentGameObject->getDamage());
+					if (strcmp(currentGameObject->whatIs(), "Projectile") == 0 && otherGameObject->getIsAlive()) {
+						ProjectileGameObject* proj = (ProjectileGameObject*) currentGameObject;
+						proj->levelWeapon(true);
+					}
 				}
 
 				if (otherGameObject->getIsFriendly() && (i == 0)) {

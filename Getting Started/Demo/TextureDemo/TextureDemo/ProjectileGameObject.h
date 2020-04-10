@@ -11,7 +11,11 @@ public:
 	void render(Shader &shader);
 	void damage(float val);
 	void kill();
+	inline char* whatIs() { return "Projectile"; }
 	inline int getType() { return 1; }
+
+	// Member functions
+	void levelWeapon(bool isKill);
 
 private:
 	Weapon& firedFrom;
