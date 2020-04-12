@@ -27,15 +27,17 @@
 #include "PowerUpGameObject.h"
 #include "TurretGameObject.h"
 #include "ChaserGameObject.h"
+#include "BossGameObject.h"
 
 #define NUM_GAME_OBJECTS 7
+#define NUM_BOSSE_SPRITESHEETS 3
 #define NUM_UI_TEXTURES 4
 #define NUM_WEAPON_TEXTURES 4
 #define NUM_BULLET_TEXTURES 3
 #define NUM_WALL_TEXTURES 5
 #define NUM_POWERUP_TEXTURES 5
 #define NUM_NUMBERS 10
-#define NUM_OBJECTS NUM_GAME_OBJECTS + NUM_UI_TEXTURES + NUM_WEAPON_TEXTURES + NUM_BULLET_TEXTURES + NUM_WALL_TEXTURES + NUM_POWERUP_TEXTURES + NUM_NUMBERS
+#define NUM_OBJECTS NUM_GAME_OBJECTS + NUM_BOSSE_SPRITESHEETS + NUM_UI_TEXTURES + NUM_WEAPON_TEXTURES + NUM_BULLET_TEXTURES + NUM_WALL_TEXTURES + NUM_POWERUP_TEXTURES + NUM_NUMBERS
 
 // Macro for printing exceptions
 #define PrintException(exception_object)\
@@ -47,6 +49,7 @@ const unsigned int window_width_g = 800;
 const unsigned int window_height_g = 600;
 const glm::vec3 viewport_background_color_g(1.0, 1.0, 1.0);
 int currentStage = 0;
+int bossesSpawned = 0;
 
 // Allows system to build a map based on inputted text file
 void buildMap(std::string map);
@@ -169,6 +172,9 @@ void setallTexture(void)
 	setthisTexture(tex[35], "rockWall.png");
 	setthisTexture(tex[36], "dirtWall.png");
 	setthisTexture(tex[37], "chaser.png");
+	setthisTexture(tex[38], "boss1_idle.png");
+	setthisTexture(tex[39], "boss2_idle.png");
+	setthisTexture(tex[40], "boss3_idle.png");
 
 	for (int i = 0; i < 10; i++) {
 		numberTextures.push_back(new GLuint(tex[23+i]));
@@ -312,6 +318,9 @@ void gameLoop(Window& window, Shader& shader, double deltaTime)
 {
 	// Clear background
 	window.clear(viewport_background_color_g);
+	shader.setUniformMat4("spriteTranslate", glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0)));
+	shader.setUniformMat4("spriteScale", glm::scale(glm::mat4(1.0f), glm::vec3(-1, -1, -1)));
+	shader.setUniform1i("hasSpriteSheet", false);
 
 	// Render static UI Elements
 	float uiZoom = 0.5f;
@@ -573,6 +582,8 @@ void buildMap(std::string map)
 			for (int i = 0; i < line.length(); i++) {
 				float len = 2.0f * i;
 				float hei = 0.0f - (2.0f * j);
+				std::vector<GLuint*> bossSpriteSheets;
+				bossSpriteSheets.push_back(new GLuint(tex[38 + bossesSpawned]));
 				switch (line[i]) {
 				case 'X': //Invincible wall
 					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[12], tex[13], 6, 1));
@@ -608,6 +619,11 @@ void buildMap(std::string map)
 					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], tex[13], 6, 0));
 					//gameObjects.push_back(new GameObject(glm::vec3(len, hei, 0.0f), tex[1], 6));
 					gameObjects.push_back(new TurretGameObject(glm::vec3(len, hei, 0.0f), tex[33], tex[34], 6, *gameObjects[0], shoot));
+					break;
+				case 'B': //Boss
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], tex[13], 6, 0));
+					gameObjects.push_back(new BossGameObject(glm::vec3(len, hei, 0.0f), tex[39], 6, bossSpriteSheets));
+					bossesSpawned++;
 					break;
 				case 'e': //Weaker enemy that does not fire at the player
 					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], tex[13], 6, 0));

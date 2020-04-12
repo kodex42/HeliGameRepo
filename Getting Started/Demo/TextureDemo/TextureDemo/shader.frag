@@ -9,10 +9,22 @@ out vec4 FragColor;
 
 uniform sampler2D onetex;
 uniform vec4 color_base;
+uniform mat4 spriteTranslate;
+uniform mat4 spriteScale;
+uniform bool hasSpriteSheet;
 
 void main()
 {
-	vec4 color = texture2D(onetex, uv_interp);
+	vec2 uv;
+
+	if (hasSpriteSheet) {
+		vec4 uv_trans = spriteTranslate * spriteScale * vec4(uv_interp, 0.0, 1.0);
+		uv = vec2(uv_trans.x, uv_trans.y);
+	} else {
+		uv = uv_interp;
+	}
+
+	vec4 color = texture2D(onetex, uv);
 	
 	if (color_base.a != 0) {
 		FragColor = vec4(

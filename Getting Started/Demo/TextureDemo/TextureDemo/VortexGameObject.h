@@ -8,5 +8,6 @@ public:
 
 	// Overrides
 	void damage();
+	void kill();
 	char * whatIs();
 };

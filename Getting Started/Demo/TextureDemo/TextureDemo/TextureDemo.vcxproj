@@ -151,6 +151,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BossGameObject.cpp" />
     <ClCompile Include="ChaserGameObject.cpp" />
     <ClCompile Include="CoinUI.cpp" />
     <ClCompile Include="HealthUI.cpp" />
@@ -169,6 +170,7 @@
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BossGameObject.h" />
     <ClInclude Include="ChaserGameObject.h" />
     <ClInclude Include="CoinUI.h" />
     <ClInclude Include="PowerupGameObject.h" />
