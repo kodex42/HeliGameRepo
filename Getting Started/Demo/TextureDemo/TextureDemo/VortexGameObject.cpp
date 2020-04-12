@@ -9,6 +9,10 @@ void VortexGameObject::damage() {
 	//You cannot damage this object
 }
 
+void VortexGameObject::kill() {
+	//You cannot kill this object
+}
+
 char * VortexGameObject::whatIs() {
 	//When the player touches the end teleporter, the next level is triggered.
 	return "vortex";

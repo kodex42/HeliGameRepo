@@ -59,6 +59,7 @@ void GameObject::transform(Shader &shader) {
 	glm::mat4 transformationMatrix = translationMatrix * rotationMatrix * scaleMatrix;
 	shader.setUniformMat4("transformationMatrix", transformationMatrix);
 	shader.setUniform4f("color_base", glm::vec4(0, 0, 0, 0));
+
 }
 
 bool GameObject::isDamaged()
