@@ -154,7 +154,10 @@
     <ClCompile Include="BossGameObject.cpp" />
     <ClCompile Include="ChaserGameObject.cpp" />
     <ClCompile Include="CoinUI.cpp" />
+    <ClCompile Include="common.cpp" />
+    <ClCompile Include="Graph.cpp" />
     <ClCompile Include="HealthUI.cpp" />
+    <ClCompile Include="Node.cpp" />
     <ClCompile Include="PlayerGameObject.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="main.cpp" />
@@ -173,6 +176,9 @@
     <ClInclude Include="BossGameObject.h" />
     <ClInclude Include="ChaserGameObject.h" />
     <ClInclude Include="CoinUI.h" />
+    <ClInclude Include="common.h" />
+    <ClInclude Include="Graph.h" />
+    <ClInclude Include="Node.h" />
     <ClInclude Include="PowerupGameObject.h" />
     <ClInclude Include="TurretGameObject.h" />
     <ClInclude Include="VortexGameObject.h" />
