@@ -157,6 +157,7 @@
     <ClCompile Include="common.cpp" />
     <ClCompile Include="Graph.cpp" />
     <ClCompile Include="HealthUI.cpp" />
+    <ClCompile Include="LiquidatorGameObject.cpp" />
     <ClCompile Include="Node.cpp" />
     <ClCompile Include="PlayerGameObject.cpp" />
     <ClCompile Include="GameObject.cpp" />

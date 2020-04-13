@@ -60,6 +60,8 @@ public:
 	inline int getStartId() { return startNodeId; }
 	inline int getEndId() { return endNodeId; }
 	inline float getUpdateCD() { return updateCD; }
+	inline int getNodeWid() { return nodeWid; }
+	inline int getNodeHei() { return nodeHei; }
 
 	std::vector<std::vector<Node*>*> nodeVec;
 
@@ -81,6 +83,7 @@ private:
 
 	std::vector<Node*> pathNodes;
 
+	int nodeHei;
 	int nodeWid;
 	int size;
 	//map used for easy access to nodes via id

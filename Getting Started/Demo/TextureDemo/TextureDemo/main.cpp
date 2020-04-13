@@ -357,7 +357,7 @@ void gameLoop(Window& window, Shader& shader, double deltaTime)
 	// Render dynamic UI Elements
 	for (int i = 0; i < dynamicUIObjects.size(); i++) {
 		UIObject* obj = dynamicUIObjects[i];
-		if (obj->getIsAlive()) {
+		if (obj->getIsAlive() && i!=1) {
 			obj->update(deltaTime);
 			obj->render(shader);
 		}
@@ -370,6 +370,41 @@ void gameLoop(Window& window, Shader& shader, double deltaTime)
 	for (int i = 0; i < gameObjects.size(); i++) {
 		// Get the current object
 		GameObject* currentGameObject = gameObjects[i];
+
+		if (i == 1) {
+			// Get the liquidator object
+			LiquidatorGameObject* currentGameObject = ((LiquidatorGameObject*)gameObjects[1]);
+
+			Node next = gameworld.at(0)->getNextId();
+			glm::vec3 current = currentGameObject->getPosition();
+			glm::vec2 direction = glm::normalize(glm::vec2(next.getX() - current.x, next.getY() - current.y));
+
+			if (currentGameObject->arrival(next)) {
+				gameworld.at(0)->setStart(next.getId());
+				gameworld.at(0)->getNext();
+				gameworld.at(0)->pathfind();
+			}
+
+			if (gameworld.at(0)->getEndId() != -1) {
+				currentGameObject->setVelocityX(direction.x * 1.3);
+				currentGameObject->setVelocityY(direction.y * 1.3);
+			}
+			else {
+				currentGameObject->setVelocityX(0.0001);
+				currentGameObject->setVelocityY(0.0001);
+			}
+			shader.setUniform3f("objPos", currentGameObject->getPosition());
+
+			//Is the liquidator touching the player? If it is, do lots of damage.
+			glm::vec3 pos1 = currentGameObject->getPosition();
+			glm::vec3 pos2 = gameObjects[0]->getPosition();
+			float rad1 = currentGameObject->getSize() / 2;
+			float rad2 = gameObjects[0]->getSize() / 2;
+			float breadth = 0.1f;
+			if (pow((pos2.x - pos1.x), 2) + pow((pos2.y - pos1.y), 2) <= pow((rad1 + rad2), 2) - breadth){
+				gameObjects[0]->damage(5);
+			}
+		}
 
 		// Update game objects
 		currentGameObject->update(deltaTime);
@@ -457,37 +492,39 @@ void gameLoop(Window& window, Shader& shader, double deltaTime)
 
 		// Check for collision between game objects
 		for (int j = i + 1; j < gameObjects.size(); j++) {
-			GameObject* otherGameObject = gameObjects[j];
+			if (i != 1) {
+				GameObject* otherGameObject = gameObjects[j];
 
-			glm::vec3 pos1 = currentGameObject->getPosition();
-			glm::vec3 pos2 = otherGameObject->getPosition();
-			float rad1 = currentGameObject->getSize() / 2;
-			float rad2 = otherGameObject->getSize() / 2;
-			float breadth = 0.1f;
-			if (pow((pos2.x - pos1.x), 2) + pow((pos2.y - pos1.y), 2) <= pow((rad1 + rad2), 2) - breadth) {
-				if (currentGameObject->getIsFriendly() != otherGameObject->getIsFriendly()
-					&& !currentGameObject->isDamaged() && !otherGameObject->isDamaged()) {
-					currentGameObject->damage(otherGameObject->getDamage());
-					otherGameObject->damage(currentGameObject->getDamage());
-					if (strcmp(otherGameObject->whatIs(), "Projectile") == 0 && !currentGameObject->getIsAlive()) {
-						ProjectileGameObject* proj = (ProjectileGameObject*) otherGameObject;
-						proj->levelWeapon(true);
-					}
-				}
-
-				if (otherGameObject->getIsFriendly() && (i == 0)) {
-					char* touched = otherGameObject->whatIs();
-					//std::cout << "Touched " << touched << std::endl;
-
-					if (strcmp("vortex", touched) == 0) {
-						nextLevel();
+				glm::vec3 pos1 = currentGameObject->getPosition();
+				glm::vec3 pos2 = otherGameObject->getPosition();
+				float rad1 = currentGameObject->getSize() / 2;
+				float rad2 = otherGameObject->getSize() / 2;
+				float breadth = 0.1f;
+				if (pow((pos2.x - pos1.x), 2) + pow((pos2.y - pos1.y), 2) <= pow((rad1 + rad2), 2) - breadth) {
+					if (currentGameObject->getIsFriendly() != otherGameObject->getIsFriendly()
+						&& !currentGameObject->isDamaged() && !otherGameObject->isDamaged()) {
+						currentGameObject->damage(otherGameObject->getDamage());
+						otherGameObject->damage(currentGameObject->getDamage());
+						if (strcmp(otherGameObject->whatIs(), "Projectile") == 0 && !currentGameObject->getIsAlive()) {
+							ProjectileGameObject* proj = (ProjectileGameObject*)otherGameObject;
+							proj->levelWeapon(true);
+						}
 					}
 
-					if (strcmp("powerUp", touched) == 0) {
-						PowerUpGameObject* powerUp = (PowerUpGameObject*)otherGameObject;
-						PlayerGameObject* player = (PlayerGameObject*)currentGameObject;
-						player->powerUp(powerUp->getPowerUpType());
-						powerUp->kill();
+					if (otherGameObject->getIsFriendly() && (i == 0)) {
+						char* touched = otherGameObject->whatIs();
+						//std::cout << "Touched " << touched << std::endl;
+
+						if (strcmp("vortex", touched) == 0) {
+							nextLevel();
+						}
+
+						if (strcmp("powerUp", touched) == 0) {
+							PowerUpGameObject* powerUp = (PowerUpGameObject*)otherGameObject;
+							PlayerGameObject* player = (PlayerGameObject*)currentGameObject;
+							player->powerUp(powerUp->getPowerUpType());
+							powerUp->kill();
+						}
 					}
 				}
 			}
@@ -502,55 +539,21 @@ void gameLoop(Window& window, Shader& shader, double deltaTime)
 		MapObjects[i]->render(shader);
 	}
 
-	// Get the liquidator object
-	LiquidatorGameObject* currentGameObject = ((LiquidatorGameObject*) gameObjects[1]);
-
-	//currentGameObject->setPosition(gameworld.getFirstLocation());
-	Node next = gameworld.at(0)->getNextId();
-	glm::vec3 current = currentGameObject->getPosition();
-	glm::vec2 direction = glm::normalize(glm::vec2(next.getX() - current.x, next.getY() - current.y));
-
-	if (currentGameObject->arrival(next)) {
-		gameworld.at(0)->setStart(next.getId());
-		gameworld.at(0)->getNext();
-		gameworld.at(0)->pathfind();
-	}
-
-	if (gameworld.at(0)->getEndId() != -1) {
-		currentGameObject->setVelocityX(direction.x * 3.3);
-		currentGameObject->setVelocityY(direction.y * 3.3);
-	}
-	else {
-		currentGameObject->setVelocityX(0.0001);
-		currentGameObject->setVelocityY(0.0001);
-	}
-	//shader.setUniform3f("S", glm::vec3(0.0f+current.x, 0.0f+current.y, 0.75f));
-	//shader.setUniform3f("V", glm::vec3(0.0f+current.x, 0.0f+current.y, 1.0f));
-
-	shader.setUniform3f("objPos", currentGameObject->getPosition());
-	// Updates game objects
-	currentGameObject->update(deltaTime);
-
 	//reset color uniform.
 	GLint color_loc = glGetUniformLocation(shader.getShaderID(), "colorMod");
 	glUniform3f(color_loc, 0.0f, 0.0f, 0.0f);
 
-	//Set object position uniform
-	//GLint objPos = glGetUniformLocation(shader.getShaderID(), "objPos");
-	//glUniform3f(objPos, currentGameObject->getPosition().x, currentGameObject->getPosition().y, currentGameObject->getPosition().z);
-	//shader.setUniform3f("objPos", currentGameObject->getPosition());
-
-	// Render game objects
-	currentGameObject->render(shader);
-	
 	gameworld.at(0)->setUpdateCD(gameworld.at(0)->getUpdateCD() - deltaTime);
 	// Update and render nav mesh / liquidator
 	if (gameworld.at(0)->getUpdateCD() < 0) {
-		gameworld.at(0)->update();
+		int maxlen = gameworld.at(0)->getNodeWid();
+		glm::vec3 newpos = gameObjects[0]->getPosition();
+		int hei = round(-1 * (newpos.y/2));
+		int len = round(newpos.x/2);
+		int finalPos = len + (maxlen * hei);
+		gameworld.at(0)->setEnd(finalPos);
 		gameworld.at(0)->setUpdateCD(1);
-		gameObjects[1]->setPosition(gameworld.at(0)->getFirstLocation());
 	}
-	gameworld.at(0)->render(shader);
 
 	// Update other events like input handling
 	glfwPollEvents();
@@ -710,6 +713,9 @@ void buildMap(std::string map)
 				}
 			}
 			j++;
+		}
+		while (gameworld.size() > 0) {
+			gameworld.pop_back();
 		}
 		gameworld.push_back(new Graph(maplen, j, GameObject(glm::vec3(0.0f), tex[0], CreateSquare()), *gameObjects[0]));
 		gameObjects[1]->setPosition(gameworld.at(0)->getFirstLocation());

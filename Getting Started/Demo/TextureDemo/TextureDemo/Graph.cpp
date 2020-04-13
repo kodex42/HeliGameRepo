@@ -32,9 +32,10 @@ Graph::Graph(int nodeWidth, int nodeHeight, GameObject nodeSprite, GameObject& r
 	std::vector<std::vector<Node*>*> nodes;
 	nodeMap = std::map<int, Node*>();
 	//data for setting node positions on screen.
-	float movementX = 1.0;
-	float movementY = -1.0f;
+	float movementX = 2.0;
+	float movementY = -2.0f;
 	nodeWid = nodeWidth;
+	nodeHei = nodeHeight;
 	size = nodeWidth * nodeHeight - 1;
 
 	//sometimes missing nodes in center because of the rounding to nearest whole, this shouldn't be a problem in practice because you'll define your own graphs
@@ -183,6 +184,7 @@ void Graph::formatNodes(std::vector<Node*>& nodes) {
 }
 
 //these two searches are used to find the node the mouse is hovering on
+//int yindex = binarySearchY(nodeVec, 0, nodeVec.size() - 1, y);
 int Graph::binarySearchY(std::vector<std::vector<Node*>*> vec, int l, int r, int dist){
 	while (l <= r) {
 		int m = l + (r - l) / 2;
@@ -245,13 +247,12 @@ void Graph::printData() {
 	}
 }
 
-//gets mouse input, updates start and end position using that information
+//gets player position, updates target end position using that information
 void Graph::update() {
 	double xpos, ypos;
 	xpos = player.getPosition().x;
 	ypos = player.getPosition().y;
 	//glfwGetCursorPos(Window::getWindow(), &xpos, &ypos);
-	//gets the node corresponding the mouseclick
 	int n = selectNode(xpos, ypos);
 	hover = n;
 		
@@ -264,8 +265,8 @@ void Graph::update() {
 		else {
 			currentNode.obOn();
 		}
-	}
-	pathfind();*/
+	}*/
+	//pathfind();
 
 	//set the start to selected node, if node exists and is not the start-node.
 	if (n != -1 && n != startNodeId && nodeMap.at(n)->isObstacle() == false) {
@@ -280,13 +281,14 @@ void Graph::update() {
 
 //returns the id of the node at the mouse coordinates
 int Graph::selectNode(double x, double y) {
-
 	glfwGetWindowSize(Window::getWindow(), &window_width_g, &window_height_g);
 	//if the mouse is outside the window, return -1
-	if (x < 0 || x > window_width_g || y < 0 || y > window_height_g) {
+	if (x < 0 || x > window_width_g || y > 0 || y < -window_height_g) {
 		return -1;
 	}
 	else {
+		y = -y;
+
 		float cursor_x_pos = ((x + 0.5f) / (float)(window_width_g / 2.0f)) - 1.0f;
 		float cursor_y_pos = 1.0f - ((y + 0.5f) / (float)(window_height_g / 2.0f));
 
@@ -295,6 +297,8 @@ int Graph::selectNode(double x, double y) {
 
 		int x = round(cursor_x_pos - minX);
 		int y = round(cursor_y_pos - minY);
+		//int x = round(cursor_x_pos);
+		//int y = round(cursor_y_pos);
 
 		int yindex = binarySearchY(nodeVec, 0, nodeVec.size()-1, y);
 		if (yindex < 0 || yindex >= nodeVec.size()) {
