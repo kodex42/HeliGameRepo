@@ -77,6 +77,9 @@
     </ClCompile>
     <ClCompile Include="LiquidatorGameObject.cpp">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClCompile Include="HitBoxGameObject.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -141,6 +144,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HitBoxGameObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

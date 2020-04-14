@@ -32,10 +32,10 @@
 #include "Node.h"
 #include "common.h"
 #include "LiquidatorGameObject.h"
+#include "HitBoxGameObject.h"
 
-
-#define NUM_GAME_OBJECTS 8
-#define NUM_BOSSE_SPRITESHEETS 3
+#define NUM_GAME_OBJECTS 9
+#define NUM_BOSSE_SPRITESHEETS 6
 #define NUM_UI_TEXTURES 4
 #define NUM_WEAPON_TEXTURES 4
 #define NUM_BULLET_TEXTURES 3
@@ -185,6 +185,10 @@ void setallTexture(void)
 	setthisTexture(tex[39], "boss2_idle.png");
 	setthisTexture(tex[40], "boss3_idle.png");
 	setthisTexture(tex[41], "liquidator.png");
+	setthisTexture(tex[42], "boss1_melee.png");
+	setthisTexture(tex[43], "boss2_melee.png");
+	setthisTexture(tex[44], "boss3_melee.png");
+	setthisTexture(tex[45], "hitbox.png");
 
 	for (int i = 0; i < 10; i++) {
 		numberTextures.push_back(new GLuint(tex[23+i]));
@@ -652,7 +656,9 @@ void buildMap(std::string map)
 				float len = 2.0f * i;
 				float hei = 0.0f - (2.0f * j);
 				std::vector<GLuint*> bossSpriteSheets;
-				bossSpriteSheets.push_back(new GLuint(tex[38 + bossesSpawned]));
+				bossSpriteSheets.push_back(new GLuint(tex[38 + bossesSpawned])); // Idle animations
+				bossSpriteSheets.push_back(new GLuint(tex[42 + bossesSpawned])); // Melee animations
+				bossSpriteSheets.push_back(new GLuint(tex[45])); // Hitbox texture
 				switch (line[i]) {
 				case 'X': //Invincible wall
 					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[12], tex[13], 6, 1));
@@ -691,8 +697,7 @@ void buildMap(std::string map)
 					break;
 				case 'B': //Boss
 					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], tex[13], 6, 0));
-					gameObjects.push_back(new BossGameObject(glm::vec3(len, hei, 0.0f), tex[39], 6, bossSpriteSheets));
-					bossesSpawned++;
+					gameObjects.push_back(new BossGameObject(glm::vec3(len, hei, 0.0f), tex[39], 6, bossSpriteSheets, ++bossesSpawned, gameObjects));
 					break;
 				case 'e': //Weaker enemy that does not fire at the player
 					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], tex[13], 6, 0));

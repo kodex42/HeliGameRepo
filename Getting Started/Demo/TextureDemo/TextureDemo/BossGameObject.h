@@ -3,16 +3,14 @@
 #include "GameObject.h"
 
 #define MAX_SPRITESHEET_SPRITES 20
-#define NUM_NORMAL_STATES 1
-#define NUM_ENRAGED_STATES 1
 
 enum State {
-	IDLE//, MELEE, SHOOT, DIE
+	IDLE, MELEE//, SHOOT, DIE
 };
 
 class BossGameObject : public GameObject {
 public:
-	BossGameObject(glm::vec3& entityPosition, GLuint entityTexture, GLint entityNumElements, std::vector<GLuint*> extraTextures);
+	BossGameObject(glm::vec3& entityPosition, GLuint entityTexture, GLint entityNumElements, std::vector<GLuint*> extraTextures, int bossId, std::vector<GameObject*>& objs);
 	
 	// Overrides
 	void update(double deltaTime);
@@ -20,14 +18,20 @@ public:
 
 	// Member functions
 	void changeState(State s);
+	void nextState();
 
 private:
 	std::vector<GLuint*> spriteSheets;
+	std::vector<GameObject*>& objs;
 	State state;
 	State onlyIdleStateList[1] = { IDLE };
-	State normalStateList[NUM_NORMAL_STATES] = { IDLE };
-	State enragedStateList[NUM_ENRAGED_STATES] = { IDLE };
 	State* currentStateList;
+	State* enragedStateList;
+	int numStates;
+	int numEnragedStates;
+	int activeState;
 	int activeFrame;
 	float activeTime;
+	int id;
+	bool enraged;
 };

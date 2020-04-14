@@ -159,6 +159,7 @@
     <ClCompile Include="HealthUI.cpp" />
     <ClCompile Include="LiquidatorGameObject.cpp" />
     <ClCompile Include="Node.cpp" />
+    <ClCompile Include="HitBoxGameObject.cpp" />
     <ClCompile Include="PlayerGameObject.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="main.cpp" />
@@ -180,6 +181,7 @@
     <ClInclude Include="common.h" />
     <ClInclude Include="Graph.h" />
     <ClInclude Include="Node.h" />
+    <ClInclude Include="HitBoxGameObject.h" />
     <ClInclude Include="PowerupGameObject.h" />
     <ClInclude Include="TurretGameObject.h" />
     <ClInclude Include="VortexGameObject.h" />
