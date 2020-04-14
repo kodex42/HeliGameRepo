@@ -43,7 +43,6 @@ public:
 	inline bool getIsAlive() { return isAlive; }
 	inline bool getIsFriendly() { return isFriendly; }
 	inline float getDamage() { return damageVal; }
-	inline glm::vec4& getColor() { return color; }
 
 	bool isDamaged();
 
@@ -89,7 +88,6 @@ protected:
 	double time;
 	bool isAlive;
 	bool isFriendly;
-	glm::vec4 color;
 
 	// Object's texture
 	GLuint texture;

@@ -84,7 +84,7 @@ void Shader::createProgram(const char* vertPath, const char* fragPath)
 
 void Shader::SetAttributes_particle()
 {
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	glBlendFunc(GL_ONE, GL_ONE);
 	glDepthMask(GL_TRUE); // draw particles without writing to depth buffer
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_particle);
@@ -113,7 +113,7 @@ void Shader::SetAttributes_particle()
 void Shader::SetAttributes_sprite()
 {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//glDepthMask(GL_TRUE); // draw particles without writing to depth buffer
+	glDepthMask(GL_FALSE); // draw particles without writing to depth buffer
 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_sprite);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_sprite);

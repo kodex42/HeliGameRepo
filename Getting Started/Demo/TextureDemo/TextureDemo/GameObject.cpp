@@ -101,7 +101,7 @@ void GameObject::renderParticles(Shader& shader, double deltaTime) {
 	glBindTexture(GL_TEXTURE_2D, texture);
 
 	//shader.enable();
-	shader.SetAttributes_particle();
+	//shader.SetAttributes_particle();
 
 
 	// Set the transformation matrix for the shader
@@ -113,7 +113,7 @@ void GameObject::renderParticles(Shader& shader, double deltaTime) {
 	glm::mat4 transformationMatrix = translationMatrix * scaling;
 	shader.setUniformMat4("transformationMatrix", transformationMatrix);
 	shader.setUniform1f("time", myTime);
-	shader.setUniform4f("colorin", getColor());
+	shader.setUniform4f("colorin", glm::vec4(0.7, 0.8, 0.0, 1.0));
 	// Draw the entity
 	glDrawElements(GL_TRIANGLES, 24000, GL_UNSIGNED_INT, 0);
 }

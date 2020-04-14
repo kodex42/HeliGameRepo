@@ -333,8 +333,7 @@ void controls(void)
 	}
 }
 
-void gameLoop(Window& window, Shader& shader, Shader& death, double deltaTime)
-//void gameLoop(Window& window, Shader& shader, double deltaTime)
+void gameLoop(Window& window, Shader& shader, Shader& death, Shader& fire, double deltaTime)
 {
 	// Clear background
 	window.clear(viewport_background_color_g);
@@ -344,30 +343,9 @@ void gameLoop(Window& window, Shader& shader, Shader& death, double deltaTime)
 	shader.setUniformMat4("spriteScale", glm::scale(glm::mat4(1.0f), glm::vec3(-1, -1, -1)));
 	shader.setUniform1i("hasSpriteSheet", false);
 
-	// Render static UI Elements
-	float uiZoom = 0.5f;
-	glm::mat4 staticUIMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(uiZoom, uiZoom, uiZoom));
-	shader.setUniformMat4("viewMatrix", staticUIMatrix);
-	for (int i = 0; i < staticUIObjects.size(); i++) {
-		UIObject* obj = staticUIObjects[i];
-		if (obj->getIsAlive()) {
-			obj->update(deltaTime);
-			obj->render(shader);
-		}
-	}
-
-	// set view to zoom out, centred by default at 0,0
-	glm::mat4 viewMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(cameraZoom, cameraZoom, cameraZoom));
-	viewMatrix = glm::translate(viewMatrix, -(gameObjects[0]->getPosition()));
-	shader.setUniformMat4("viewMatrix", viewMatrix);
-
-	// Render dynamic UI Elements
-	for (int i = 0; i < dynamicUIObjects.size(); i++) {
-		UIObject* obj = dynamicUIObjects[i];
-		if (obj->getIsAlive() && i!=1) {
-			obj->update(deltaTime);
-			obj->render(shader);
-		}
+	//Render map
+	for (int i = 0; i < MapObjects.size(); i++) {
+		MapObjects[i]->render(shader);
 	}
 
 	// apply user input
@@ -541,9 +519,30 @@ void gameLoop(Window& window, Shader& shader, Shader& death, double deltaTime)
 		currentGameObject->render(shader);
 	}
 
-	//Render map
-	for (int i = 0; i < MapObjects.size(); i++) {
-		MapObjects[i]->render(shader);
+	// Render static UI Elements
+	float uiZoom = 0.5f;
+	glm::mat4 staticUIMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(uiZoom, uiZoom, uiZoom));
+	shader.setUniformMat4("viewMatrix", staticUIMatrix);
+	for (int i = 0; i < staticUIObjects.size(); i++) {
+		UIObject* obj = staticUIObjects[i];
+		if (obj->getIsAlive()) {
+			obj->update(deltaTime);
+			obj->render(shader);
+		}
+	}
+
+	// set view to zoom out, centred by default at 0,0
+	glm::mat4 viewMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(cameraZoom, cameraZoom, cameraZoom));
+	viewMatrix = glm::translate(viewMatrix, -(gameObjects[0]->getPosition()));
+	shader.setUniformMat4("viewMatrix", viewMatrix);
+
+	// Render dynamic UI Elements
+	for (int i = 0; i < dynamicUIObjects.size(); i++) {
+		UIObject* obj = dynamicUIObjects[i];
+		if (obj->getIsAlive() && i != 1) {
+			obj->update(deltaTime);
+			obj->render(shader);
+		}
 	}
 
 	//reset color uniform.
@@ -563,18 +562,16 @@ void gameLoop(Window& window, Shader& shader, Shader& death, double deltaTime)
 	}
 
 	//Render particles
-
 	death.enable();
 	death.SetAttributes_particle();
 	death.setUniformMat4("viewMatrix", viewMatrix);
-	death.setUniform1f("explodeTime", 0.0);
+	death.setUniform1f("explodeTime", 1.5);
 	gameObjects[0]->renderParticles(death, deltaTime);
 
-	//Render fireworks
-	/*streak.enable();
-	streak.setUniformMat4("viewMatrix", viewMatrix);
-	streak.setUniform1f("explodeTime", 1.5);
-	gameObjects[1]->renderParticles(streak, deltaTime);*/
+	fire.enable();
+	fire.SetAttributes_particle();
+	fire.setUniformMat4("viewMatrix", viewMatrix);
+	gameObjects[1]->renderParticles(fire, deltaTime);
 
 	// Update other events like input handling
 	glfwPollEvents();
@@ -725,12 +722,12 @@ void buildMap(std::string map)
 					gameObjects.push_back(new VortexGameObject(glm::vec3(len, hei, 0.0f), tex[14], 6));
 					break;
 				case 'D': //Dirt wall
-					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[36], tex[36], 6, 2));
 					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], tex[13], 6, 0));
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[36], tex[36], 6, 2));
 					break;
 				case 'R': //Rock wall
-					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[35], tex[36], 6, 5));
 					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[13], tex[13], 6, 0));
+					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[35], tex[36], 6, 5));
 					break;
 				}
 			}
@@ -777,7 +774,7 @@ int main(void){
 		//Shader for explosions when enemies die
 		Shader death("death_shader.vert", "particle_shader.frag", false);
 		//Shader for fire
-		//Shader fire("fire_shader.vert", "particle_shader.frag", false);
+		Shader fire("fire_shader.vert", "particle_shader.frag", false);
 
 		//shader.enable();
 
@@ -792,8 +789,7 @@ int main(void){
 			double deltaTime = currentTime - lastTime;
 			lastTime = currentTime;
 
-			gameLoop(window, shader, death, deltaTime);
-			//gameLoop(window, shader, death, fire, deltaTime);
+			gameLoop(window, shader, death, fire, deltaTime);
 		}
 	}
 	catch (std::exception &e){

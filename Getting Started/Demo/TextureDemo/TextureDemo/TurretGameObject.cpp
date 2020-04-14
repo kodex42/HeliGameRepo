@@ -25,6 +25,7 @@ void TurretGameObject::update(double deltaTime) {
 }
 
 void TurretGameObject::render(Shader& shader) {
+	GameObject::render(shader);
 	shader.setUniform1f("radius", 1.0);
 	glBindTexture(GL_TEXTURE_2D, turretTex);
 	//Get the spacing for the orbs and then the required matrices
@@ -35,5 +36,4 @@ void TurretGameObject::render(Shader& shader) {
 	shader.setUniformMat4("transformationMatrix", transformationMatrix);
 	//Draw
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-	GameObject::render(shader);
 }
