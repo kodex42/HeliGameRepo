@@ -333,13 +333,13 @@ void controls(void)
 	}
 }
 
-//void gameLoop(Window& window, Shader& shader, Shader& death, Shader& fire, double deltaTime)
-void gameLoop(Window& window, Shader& shader, double deltaTime)
+void gameLoop(Window& window, Shader& shader, Shader& death, double deltaTime)
+//void gameLoop(Window& window, Shader& shader, double deltaTime)
 {
 	// Clear background
 	window.clear(viewport_background_color_g);
 	shader.enable();
-	//shader.SetAttributes_sprite();
+	shader.SetAttributes_sprite();
 	shader.setUniformMat4("spriteTranslate", glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0)));
 	shader.setUniformMat4("spriteScale", glm::scale(glm::mat4(1.0f), glm::vec3(-1, -1, -1)));
 	shader.setUniform1i("hasSpriteSheet", false);
@@ -562,6 +562,20 @@ void gameLoop(Window& window, Shader& shader, double deltaTime)
 		gameworld.at(0)->setUpdateCD(1);
 	}
 
+	//Render particles
+
+	death.enable();
+	death.SetAttributes_particle();
+	death.setUniformMat4("viewMatrix", viewMatrix);
+	death.setUniform1f("explodeTime", 0.0);
+	gameObjects[0]->renderParticles(death, deltaTime);
+
+	//Render fireworks
+	/*streak.enable();
+	streak.setUniformMat4("viewMatrix", viewMatrix);
+	streak.setUniform1f("explodeTime", 1.5);
+	gameObjects[1]->renderParticles(streak, deltaTime);*/
+
 	// Update other events like input handling
 	glfwPollEvents();
 
@@ -763,7 +777,7 @@ int main(void){
 		//Shader for explosions when enemies die
 		Shader death("death_shader.vert", "particle_shader.frag", false);
 		//Shader for fire
-		Shader fire("fire_shader.vert", "particle_shader.frag", false);
+		//Shader fire("fire_shader.vert", "particle_shader.frag", false);
 
 		//shader.enable();
 
@@ -778,7 +792,7 @@ int main(void){
 			double deltaTime = currentTime - lastTime;
 			lastTime = currentTime;
 
-			gameLoop(window, shader, deltaTime);
+			gameLoop(window, shader, death, deltaTime);
 			//gameLoop(window, shader, death, fire, deltaTime);
 		}
 	}
