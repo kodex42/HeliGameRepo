@@ -80,7 +80,6 @@ char * GameObject::whatIs() {
 	//This will be re-written by subclasses to determine what is being picked up. 
 	//However, the object being picked up usually will always disappear for power ups and entering portals anyways.
 	//But for now to be safe it will do nothing. It would be pretty silly for bullets to delete themselves.
-	//kill();
 	return "object";
 }
 
@@ -93,4 +92,28 @@ void GameObject::render(Shader &shader) {
 
 	// Draw the entity
 	glDrawElements(GL_TRIANGLES, numElements, GL_UNSIGNED_INT, 0);
+}
+
+void GameObject::renderParticles(Shader& shader, double deltaTime) {
+	// Bind the particle texture
+	myTime += (float)deltaTime;
+
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	//shader.enable();
+	shader.SetAttributes_particle();
+
+
+	// Set the transformation matrix for the shader
+	glm::mat4 scaling = glm::scale(glm::mat4(1.0), glm::vec3(0.2, 0.2, 0.2));
+	glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), position);
+
+	// Set the transformation matrix in the shader
+	// TODO: Multiply your new transformations to make the transformationMatrix
+	glm::mat4 transformationMatrix = translationMatrix * scaling;
+	shader.setUniformMat4("transformationMatrix", transformationMatrix);
+	shader.setUniform1f("time", myTime);
+	shader.setUniform4f("colorin", getColor());
+	// Draw the entity
+	glDrawElements(GL_TRIANGLES, 24000, GL_UNSIGNED_INT, 0);
 }

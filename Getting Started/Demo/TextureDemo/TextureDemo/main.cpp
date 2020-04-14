@@ -333,10 +333,13 @@ void controls(void)
 	}
 }
 
+//void gameLoop(Window& window, Shader& shader, Shader& death, Shader& fire, double deltaTime)
 void gameLoop(Window& window, Shader& shader, double deltaTime)
 {
 	// Clear background
 	window.clear(viewport_background_color_g);
+	shader.enable();
+	//shader.SetAttributes_sprite();
 	shader.setUniformMat4("spriteTranslate", glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0)));
 	shader.setUniformMat4("spriteScale", glm::scale(glm::mat4(1.0f), glm::vec3(-1, -1, -1)));
 	shader.setUniform1i("hasSpriteSheet", false);
@@ -754,8 +757,15 @@ int main(void){
 
 		// Setup window
 		Window window(window_width_g, window_height_g, window_title_g);
-		Shader shader("shader.vert", "shader.frag");
-		shader.enable();
+
+		//Default texture shader
+		Shader shader("shader.vert", "shader.frag", true);
+		//Shader for explosions when enemies die
+		Shader death("death_shader.vert", "particle_shader.frag", false);
+		//Shader for fire
+		Shader fire("fire_shader.vert", "particle_shader.frag", false);
+
+		//shader.enable();
 
 		setup();
 
@@ -769,6 +779,7 @@ int main(void){
 			lastTime = currentTime;
 
 			gameLoop(window, shader, deltaTime);
+			//gameLoop(window, shader, death, fire, deltaTime);
 		}
 	}
 	catch (std::exception &e){

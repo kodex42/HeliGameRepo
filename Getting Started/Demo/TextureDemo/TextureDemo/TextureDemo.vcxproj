@@ -199,6 +199,9 @@
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="death_shader.vert" />
+    <None Include="fire_shader.vert" />
+    <None Include="particle_shader.frag" />
     <None Include="shader.frag" />
     <None Include="shader.vert" />
   </ItemGroup>

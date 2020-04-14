@@ -28,6 +28,7 @@ public:
 
 	// Renders the GameObject using a shader
 	virtual void render(Shader &shader);
+	virtual void renderParticles(Shader& shader, double deltaTime);
 	virtual void transform(Shader &shader);
 
 	// Getters
@@ -42,6 +43,8 @@ public:
 	inline bool getIsAlive() { return isAlive; }
 	inline bool getIsFriendly() { return isFriendly; }
 	inline float getDamage() { return damageVal; }
+	inline glm::vec4& getColor() { return color; }
+
 	bool isDamaged();
 
 	// Setters
@@ -58,6 +61,9 @@ public:
 	// Member functions
 	virtual char* whatIs();
 	virtual inline int getType() { return -1; } //Returns the wall or enemy type as an int
+
+	//Independent time for particle effects
+	float myTime = 0;
 
 protected:
 	// Object's Transform Variables
@@ -83,6 +89,7 @@ protected:
 	double time;
 	bool isAlive;
 	bool isFriendly;
+	glm::vec4 color;
 
 	// Object's texture
 	GLuint texture;
