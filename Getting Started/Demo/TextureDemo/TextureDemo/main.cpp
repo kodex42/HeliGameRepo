@@ -383,6 +383,12 @@ void gameLoop(Window& window, Shader& shader, double deltaTime)
 			glm::vec3 current = currentGameObject->getPosition();
 			glm::vec2 direction = glm::normalize(glm::vec2(next.getX() - current.x, next.getY() - current.y));
 
+			if (glm::distance(current, gameObjects[0]->getPosition()) < 3.5) { // Is the Liquidator close to the player?
+				glm::vec3 playerPos = gameObjects[0]->getPosition();
+				//std::cout << "LIQUIDATOR PURSUING" << std::endl;
+				direction = glm::normalize(glm::vec2(playerPos.x - current.x, playerPos.y - current.y));
+			}
+
 			if (currentGameObject->arrival(next)) {
 				gameworld.at(0)->setStart(next.getId());
 				gameworld.at(0)->getNext();
@@ -406,7 +412,7 @@ void gameLoop(Window& window, Shader& shader, double deltaTime)
 			float rad2 = gameObjects[0]->getSize() / 2;
 			float breadth = 0.1f;
 			if (pow((pos2.x - pos1.x), 2) + pow((pos2.y - pos1.y), 2) <= pow((rad1 + rad2), 2) - breadth){
-				gameObjects[0]->damage(5);
+				gameObjects[0]->damage(500);
 			}
 		}
 
