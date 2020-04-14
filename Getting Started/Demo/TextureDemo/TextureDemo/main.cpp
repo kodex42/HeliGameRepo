@@ -28,9 +28,13 @@
 #include "TurretGameObject.h"
 #include "ChaserGameObject.h"
 #include "BossGameObject.h"
+#include "Graph.h"
+#include "Node.h"
+#include "common.h"
+#include "LiquidatorGameObject.h"
 #include "HitBoxGameObject.h"
 
-#define NUM_GAME_OBJECTS 8
+#define NUM_GAME_OBJECTS 9
 #define NUM_BOSSE_SPRITESHEETS 6
 #define NUM_UI_TEXTURES 4
 #define NUM_WEAPON_TEXTURES 4
@@ -45,9 +49,12 @@
 	std::cerr << exception_object.what() << std::endl
 
 // Globals that define the OpenGL window and viewport
-const std::string window_title_g = "Transform Demo";
-const unsigned int window_width_g = 800;
-const unsigned int window_height_g = 600;
+const std::string window_title_g = "The Liquidators";
+extern int window_width_g = 800;
+extern int window_height_g = 600;
+extern float cameraZoom = 0.15;
+//extern float cameraZoom = 0.01;
+extern float aspectRatio = (float)window_height_g / (float)window_width_g;
 const glm::vec3 viewport_background_color_g(1.0, 1.0, 1.0);
 int currentStage = 0;
 int bossesSpawned = 0;
@@ -70,7 +77,8 @@ std::vector<UIObject*> dynamicUIObjects;
 std::vector<UIObject*> staticUIObjects;
 std::vector<GameObject*> MapObjects;
 std::vector<GLuint*> numberTextures;
-
+std::vector<Node*> nodes;
+std::vector<Graph*> gameworld;
 
 // Create the geometry for a square (with two triangles)
 // Return the number of array elements that form the square
@@ -176,10 +184,11 @@ void setallTexture(void)
 	setthisTexture(tex[38], "boss1_idle.png");
 	setthisTexture(tex[39], "boss2_idle.png");
 	setthisTexture(tex[40], "boss3_idle.png");
-	setthisTexture(tex[41], "boss1_melee.png");
-	setthisTexture(tex[42], "boss2_melee.png");
-	setthisTexture(tex[43], "boss3_melee.png");
-	setthisTexture(tex[44], "hitbox.png");
+	setthisTexture(tex[41], "liquidator.png");
+	setthisTexture(tex[42], "boss1_melee.png");
+	setthisTexture(tex[43], "boss2_melee.png");
+	setthisTexture(tex[44], "boss3_melee.png");
+	setthisTexture(tex[45], "hitbox.png");
 
 	for (int i = 0; i < 10; i++) {
 		numberTextures.push_back(new GLuint(tex[23+i]));
@@ -210,8 +219,13 @@ void setup(void)
 	extraTextures.push_back(new GLuint(tex[11])); // Propellor
 	// Setup the player object (position, texture, vertex count)
 	PlayerGameObject* player = new PlayerGameObject(glm::vec3(0.0f, 0.0f, 0.0f), tex[0], size, extraTextures);
+	LiquidatorGameObject* liquidator = new LiquidatorGameObject(glm::vec3(0.0f, 0.0f, 0.0f), tex[41], size);
 	// Note, player object should always be the first object in the game object vector 
 	gameObjects.push_back(player);
+	gameObjects.push_back(liquidator);
+
+	//Create gameworld for path planning
+	srand((unsigned int)time(0));
 
 	//Builds the first map
 	buildMap("map1.txt");
@@ -340,7 +354,6 @@ void gameLoop(Window& window, Shader& shader, double deltaTime)
 	}
 
 	// set view to zoom out, centred by default at 0,0
-	float cameraZoom = 0.15f;
 	glm::mat4 viewMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(cameraZoom, cameraZoom, cameraZoom));
 	viewMatrix = glm::translate(viewMatrix, -(gameObjects[0]->getPosition()));
 	shader.setUniformMat4("viewMatrix", viewMatrix);
@@ -348,7 +361,7 @@ void gameLoop(Window& window, Shader& shader, double deltaTime)
 	// Render dynamic UI Elements
 	for (int i = 0; i < dynamicUIObjects.size(); i++) {
 		UIObject* obj = dynamicUIObjects[i];
-		if (obj->getIsAlive()) {
+		if (obj->getIsAlive() && i!=1) {
 			obj->update(deltaTime);
 			obj->render(shader);
 		}
@@ -361,6 +374,41 @@ void gameLoop(Window& window, Shader& shader, double deltaTime)
 	for (int i = 0; i < gameObjects.size(); i++) {
 		// Get the current object
 		GameObject* currentGameObject = gameObjects[i];
+
+		if (i == 1) {
+			// Get the liquidator object
+			LiquidatorGameObject* currentGameObject = ((LiquidatorGameObject*)gameObjects[1]);
+
+			Node next = gameworld.at(0)->getNextId();
+			glm::vec3 current = currentGameObject->getPosition();
+			glm::vec2 direction = glm::normalize(glm::vec2(next.getX() - current.x, next.getY() - current.y));
+
+			if (currentGameObject->arrival(next)) {
+				gameworld.at(0)->setStart(next.getId());
+				gameworld.at(0)->getNext();
+				gameworld.at(0)->pathfind();
+			}
+
+			if (gameworld.at(0)->getEndId() != -1) {
+				currentGameObject->setVelocityX(direction.x * 1.3);
+				currentGameObject->setVelocityY(direction.y * 1.3);
+			}
+			else {
+				currentGameObject->setVelocityX(0.0001);
+				currentGameObject->setVelocityY(0.0001);
+			}
+			shader.setUniform3f("objPos", currentGameObject->getPosition());
+
+			//Is the liquidator touching the player? If it is, do lots of damage.
+			glm::vec3 pos1 = currentGameObject->getPosition();
+			glm::vec3 pos2 = gameObjects[0]->getPosition();
+			float rad1 = currentGameObject->getSize() / 2;
+			float rad2 = gameObjects[0]->getSize() / 2;
+			float breadth = 0.1f;
+			if (pow((pos2.x - pos1.x), 2) + pow((pos2.y - pos1.y), 2) <= pow((rad1 + rad2), 2) - breadth){
+				gameObjects[0]->damage(5);
+			}
+		}
 
 		// Update game objects
 		currentGameObject->update(deltaTime);
@@ -448,37 +496,39 @@ void gameLoop(Window& window, Shader& shader, double deltaTime)
 
 		// Check for collision between game objects
 		for (int j = i + 1; j < gameObjects.size(); j++) {
-			GameObject* otherGameObject = gameObjects[j];
+			if (i != 1) {
+				GameObject* otherGameObject = gameObjects[j];
 
-			glm::vec3 pos1 = currentGameObject->getPosition();
-			glm::vec3 pos2 = otherGameObject->getPosition();
-			float rad1 = currentGameObject->getSize() / 2;
-			float rad2 = otherGameObject->getSize() / 2;
-			float breadth = 0.1f;
-			if (pow((pos2.x - pos1.x), 2) + pow((pos2.y - pos1.y), 2) <= pow((rad1 + rad2), 2) - breadth) {
-				if (currentGameObject->getIsFriendly() != otherGameObject->getIsFriendly()
-					&& !currentGameObject->isDamaged() && !otherGameObject->isDamaged()) {
-					currentGameObject->damage(otherGameObject->getDamage());
-					otherGameObject->damage(currentGameObject->getDamage());
-					if (strcmp(otherGameObject->whatIs(), "Projectile") == 0 && !currentGameObject->getIsAlive()) {
-						ProjectileGameObject* proj = (ProjectileGameObject*) otherGameObject;
-						proj->levelWeapon(true);
-					}
-				}
-
-				if (otherGameObject->getIsFriendly() && (i == 0)) {
-					char* touched = otherGameObject->whatIs();
-					//std::cout << "Touched " << touched << std::endl;
-
-					if (strcmp("vortex", touched) == 0) {
-						nextLevel();
+				glm::vec3 pos1 = currentGameObject->getPosition();
+				glm::vec3 pos2 = otherGameObject->getPosition();
+				float rad1 = currentGameObject->getSize() / 2;
+				float rad2 = otherGameObject->getSize() / 2;
+				float breadth = 0.1f;
+				if (pow((pos2.x - pos1.x), 2) + pow((pos2.y - pos1.y), 2) <= pow((rad1 + rad2), 2) - breadth) {
+					if (currentGameObject->getIsFriendly() != otherGameObject->getIsFriendly()
+						&& !currentGameObject->isDamaged() && !otherGameObject->isDamaged()) {
+						currentGameObject->damage(otherGameObject->getDamage());
+						otherGameObject->damage(currentGameObject->getDamage());
+						if (strcmp(otherGameObject->whatIs(), "Projectile") == 0 && !currentGameObject->getIsAlive()) {
+							ProjectileGameObject* proj = (ProjectileGameObject*)otherGameObject;
+							proj->levelWeapon(true);
+						}
 					}
 
-					if (strcmp("powerUp", touched) == 0) {
-						PowerUpGameObject* powerUp = (PowerUpGameObject*)otherGameObject;
-						PlayerGameObject* player = (PlayerGameObject*)currentGameObject;
-						player->powerUp(powerUp->getPowerUpType());
-						powerUp->kill();
+					if (otherGameObject->getIsFriendly() && (i == 0)) {
+						char* touched = otherGameObject->whatIs();
+						//std::cout << "Touched " << touched << std::endl;
+
+						if (strcmp("vortex", touched) == 0) {
+							nextLevel();
+						}
+
+						if (strcmp("powerUp", touched) == 0) {
+							PowerUpGameObject* powerUp = (PowerUpGameObject*)otherGameObject;
+							PlayerGameObject* player = (PlayerGameObject*)currentGameObject;
+							player->powerUp(powerUp->getPowerUpType());
+							powerUp->kill();
+						}
 					}
 				}
 			}
@@ -491,6 +541,22 @@ void gameLoop(Window& window, Shader& shader, double deltaTime)
 	//Render map
 	for (int i = 0; i < MapObjects.size(); i++) {
 		MapObjects[i]->render(shader);
+	}
+
+	//reset color uniform.
+	GLint color_loc = glGetUniformLocation(shader.getShaderID(), "colorMod");
+	glUniform3f(color_loc, 0.0f, 0.0f, 0.0f);
+
+	gameworld.at(0)->setUpdateCD(gameworld.at(0)->getUpdateCD() - deltaTime);
+	// Update and render nav mesh / liquidator
+	if (gameworld.at(0)->getUpdateCD() < 0) {
+		int maxlen = gameworld.at(0)->getNodeWid();
+		glm::vec3 newpos = gameObjects[0]->getPosition();
+		int hei = round(-1 * (newpos.y/2));
+		int len = round(newpos.x/2);
+		int finalPos = len + (maxlen * hei);
+		gameworld.at(0)->setEnd(finalPos);
+		gameworld.at(0)->setUpdateCD(1);
 	}
 
 	// Update other events like input handling
@@ -579,18 +645,20 @@ void buildMap(std::string map)
 	std::string line;
 	std::ifstream myfile(map);
 	int j = 0;
+	int maplen;
 	if (myfile.is_open())
 	{
 		while (getline(myfile, line))
 		{
 			//std::cout << line << std::endl;
 			for (int i = 0; i < line.length(); i++) {
+				maplen = line.length();
 				float len = 2.0f * i;
 				float hei = 0.0f - (2.0f * j);
 				std::vector<GLuint*> bossSpriteSheets;
 				bossSpriteSheets.push_back(new GLuint(tex[38 + bossesSpawned])); // Idle animations
-				bossSpriteSheets.push_back(new GLuint(tex[41 + bossesSpawned])); // Melee animations
-				bossSpriteSheets.push_back(new GLuint(tex[44])); // Hitbox texture
+				bossSpriteSheets.push_back(new GLuint(tex[42 + bossesSpawned])); // Melee animations
+				bossSpriteSheets.push_back(new GLuint(tex[45])); // Hitbox texture
 				switch (line[i]) {
 				case 'X': //Invincible wall
 					MapObjects.push_back(new WallGameObject(glm::vec3(len, hei, 0.0f), tex[12], tex[13], 6, 1));
@@ -651,6 +719,11 @@ void buildMap(std::string map)
 			}
 			j++;
 		}
+		while (gameworld.size() > 0) {
+			gameworld.pop_back();
+		}
+		gameworld.push_back(new Graph(maplen, j, GameObject(glm::vec3(0.0f), tex[0], CreateSquare()), *gameObjects[0]));
+		gameObjects[1]->setPosition(gameworld.at(0)->getFirstLocation());
 		myfile.close();
 	}
 	//else std::cout << "Unable to open MAP file";
