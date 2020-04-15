@@ -836,7 +836,8 @@ void nextLevel() {
 		buildMap("map3.txt");
 	}
 	for (int i = 0; i < gameObjects.size(); i++) {
-		dynamicUIObjects.push_back(new HealthUI(gameObjects[i]->getPosition(), tex[3], tex[4], 6, *(gameObjects[i])));
+		if (gameObjects[i]->whatIs() == "object" || gameObjects[i]->whatIs() == "player")
+			dynamicUIObjects.push_back(new HealthUI(gameObjects[i]->getPosition(), tex[3], tex[4], 6, *(gameObjects[i])));
 	}
 }
 
