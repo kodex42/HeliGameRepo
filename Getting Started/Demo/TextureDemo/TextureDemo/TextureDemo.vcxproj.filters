@@ -143,6 +143,29 @@
     <None Include="shader.vert">
       <Filter>Shader</Filter>
     </None>
+<<<<<<< Updated upstream
+=======
+    <None Include="particle_shader.frag">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="death_shader.vert">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="fire_shader.vert">
+      <Filter>Shader</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header">
+      <UniqueIdentifier>{ec7434dc-803b-43ca-b5b7-3f669c35aae0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source">
+      <UniqueIdentifier>{db3f75d0-7151-4cbc-a5f8-3bd44444e02c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader">
+      <UniqueIdentifier>{b9bb2071-b73a-4ab2-b7ec-4697eaacd653}</UniqueIdentifier>
+    </Filter>
+>>>>>>> Stashed changes
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header">
