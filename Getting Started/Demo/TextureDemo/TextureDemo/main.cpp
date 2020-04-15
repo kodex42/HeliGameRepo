@@ -81,6 +81,7 @@ std::vector<GameObject*> MapObjects;
 std::vector<GLuint*> numberTextures;
 std::vector<Node*> nodes;
 std::vector<Graph*> gameworld;
+std::vector<int> weaponLevels;
 
 // Create the geometry for a square (with two triangles)
 // Return the number of array elements that form the square
@@ -227,6 +228,12 @@ void setup(void)
 	// Note, player object should always be the first object in the game object vector 
 	gameObjects.push_back(player);
 	gameObjects.push_back(liquidator);
+	std::vector<Weapon*>* currWeaps = player->getWeapons();
+	int level;
+	for (int i = 0; i < 4; i++) {
+		level = (*currWeaps)[i]->level;
+		weaponLevels.push_back(level);
+	}
 
 	//Create gameworld for path planning
 	srand((unsigned int)time(0));
@@ -344,6 +351,8 @@ bool continueKey(void) {
 void startScreenLoop(Window& window, Shader& shader, double deltaTime) {
 	// Clear background
 	window.clear(viewport_background_color_g);
+	shader.enable();
+	shader.SetAttributes_sprite();
 	shader.setUniformMat4("spriteTranslate", glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0)));
 	shader.setUniformMat4("spriteScale", glm::scale(glm::mat4(1.0f), glm::vec3(-1, -1, -1)));
 	shader.setUniform1i("hasSpriteSheet", false);
@@ -607,17 +616,37 @@ void gameLoop(Window& window, Shader& shader, Shader& death, Shader& fire, doubl
 		gameworld.at(0)->setUpdateCD(1);
 	}
 
-	//Render particles
-	death.enable();
-	death.SetAttributes_particle();
-	death.setUniformMat4("viewMatrix", viewMatrix);
-	death.setUniform1f("explodeTime", 1.5);
-	gameObjects[0]->renderParticles(death, deltaTime);
+	PlayerGameObject* player = (PlayerGameObject*) gameObjects[0]; 
+	std::vector<Weapon*>* newweap = player->getWeapons();
+	
+	//Determines if the level up effect should be going off!
+	for (int i = 0; i < 4; i++) {
+		if (weaponLevels[i] != (*newweap)[i]->level) {
+			weaponLevels[i] = (*newweap)[i]->level;
+			player->startLevelUp();
+			player->setLevelupTimer(5.4);
+		}
+	}
 
-	fire.enable();
-	fire.SetAttributes_particle();
-	fire.setUniformMat4("viewMatrix", viewMatrix);
-	gameObjects[1]->renderParticles(fire, deltaTime);
+	if (player->getLevelUp()) {
+		player->setLevelupTimer(player->getLevelupTimer() - deltaTime);
+		if (player->getLevelupTimer() <= 0) {
+			player->endLevelUp();
+		}
+		//Render particles for weapon levelup
+		death.enable();
+		death.SetAttributes_particle();
+		death.setUniformMat4("viewMatrix", viewMatrix);
+		death.setUniform1f("explodeTime", 1.5);
+		gameObjects[0]->renderParticles(death, deltaTime);
+	}
+
+	if (player->getHealth() == 1) {
+		fire.enable();
+		fire.SetAttributes_particle();
+		fire.setUniformMat4("viewMatrix", viewMatrix);
+		gameObjects[0]->renderParticles(fire, deltaTime);
+	}
 
 	// Update other events like input handling
 	glfwPollEvents();
@@ -638,6 +667,8 @@ void gameLoop(Window& window, Shader& shader, Shader& death, Shader& fire, doubl
 void gameOverLoop(Window& window, Shader& shader, double deltaTime) {
 	// Clear background
 	window.clear(viewport_background_color_g);
+	shader.enable();
+	shader.SetAttributes_sprite();
 	shader.setUniformMat4("spriteTranslate", glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0)));
 	shader.setUniformMat4("spriteScale", glm::scale(glm::mat4(1.0f), glm::vec3(-1, -1, -1)));
 	shader.setUniform1i("hasSpriteSheet", false);

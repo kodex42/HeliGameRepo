@@ -21,10 +21,17 @@ public:
 
 	// Getters
 	inline Weapon* getEquippedWeapon() { return equipped; }
+	inline std::vector<Weapon*>* getWeapons() { return weapons; }
 	inline int getWallet() { return wallet; }
+	inline double getLevelupTimer() { return levelupTimer; }
+	inline bool getLevelUp() { return levelup; }
+	inline int getNumWeapons() { return numWeapons; }
 
 	// Setters
 	void giveWeapon(Weapon& weap);
+	inline void setLevelupTimer(double n) { levelupTimer = n; }
+	inline void startLevelUp() { levelup = true; }
+	inline void endLevelUp() { levelup = false; }
 	
 	// Member functions
 	void changeAcceleration(glm::vec3 newAcceleration);
@@ -50,4 +57,6 @@ private:
 	double timeFrozen;
 	double lastTimeMadeInvincible;
 	double timeMadeInvincible;
+	bool levelup = false;
+	float levelupTimer;
 };
