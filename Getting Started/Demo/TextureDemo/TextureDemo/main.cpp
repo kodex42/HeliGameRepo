@@ -42,7 +42,8 @@
 #define NUM_WALL_TEXTURES 5
 #define NUM_POWERUP_TEXTURES 5
 #define NUM_NUMBERS 10
-#define NUM_OBJECTS NUM_GAME_OBJECTS + NUM_BOSSE_SPRITESHEETS + NUM_UI_TEXTURES + NUM_WEAPON_TEXTURES + NUM_BULLET_TEXTURES + NUM_WALL_TEXTURES + NUM_POWERUP_TEXTURES + NUM_NUMBERS
+#define NUM_SCREENS 2
+#define NUM_OBJECTS NUM_GAME_OBJECTS + NUM_BOSSE_SPRITESHEETS + NUM_UI_TEXTURES + NUM_WEAPON_TEXTURES + NUM_BULLET_TEXTURES + NUM_WALL_TEXTURES + NUM_POWERUP_TEXTURES + NUM_NUMBERS + NUM_SCREENS
 
 // Macro for printing exceptions
 #define PrintException(exception_object)\
@@ -58,6 +59,7 @@ extern float aspectRatio = (float)window_height_g / (float)window_width_g;
 const glm::vec3 viewport_background_color_g(1.0, 1.0, 1.0);
 int currentStage = 0;
 int bossesSpawned = 0;
+int gameState = 0;
 
 // Allows system to build a map based on inputted text file
 void buildMap(std::string map);
@@ -189,6 +191,8 @@ void setallTexture(void)
 	setthisTexture(tex[43], "boss2_melee.png");
 	setthisTexture(tex[44], "boss3_melee.png");
 	setthisTexture(tex[45], "hitbox.png");
+	setthisTexture(tex[46], "TitleScreen.png");
+	setthisTexture(tex[47], "GameOverScreen.png");
 
 	for (int i = 0; i < 10; i++) {
 		numberTextures.push_back(new GLuint(tex[23+i]));
@@ -330,6 +334,42 @@ void controls(void)
 			shoot(w, player->getPosition() + glm::vec3(-0.5f, -0.2f, 0), -1, 0);
 		else if (dir == 270)
 			shoot(w, player->getPosition() + glm::vec3(0.05f, -0.5f, 0), 0, -1);
+	}
+}
+
+bool continueKey(void) {
+	return glfwGetKey(Window::getWindow(), GLFW_KEY_ENTER) == GLFW_PRESS;
+}
+
+void startScreenLoop(Window& window, Shader& shader, double deltaTime) {
+	// Clear background
+	window.clear(viewport_background_color_g);
+	shader.setUniformMat4("spriteTranslate", glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0)));
+	shader.setUniformMat4("spriteScale", glm::scale(glm::mat4(1.0f), glm::vec3(-1, -1, -1)));
+	shader.setUniform1i("hasSpriteSheet", false);
+
+	// Render Title Screen
+	float uiZoom = 2.0f;
+	glm::mat4 staticUIMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(uiZoom, uiZoom, uiZoom));
+	shader.setUniformMat4("viewMatrix", staticUIMatrix);
+	shader.setUniformMat4("transformationMatrix", glm::mat4(1.0f));
+	shader.setUniform4f("color_base", glm::vec4(0, 0, 0, 0));
+
+	// Bind the entities texture
+	glBindTexture(GL_TEXTURE_2D, tex[46]);
+
+	// Draw the entity
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+	// Update other events like input handling
+	glfwPollEvents();
+
+	// Push buffer drawn in the background onto the display
+	glfwSwapBuffers(window.getWindow());
+
+	// Check for continue
+	if (continueKey()) {
+		gameState++;
 	}
 }
 
@@ -573,12 +613,44 @@ void gameLoop(Window& window, Shader& shader, double deltaTime)
 
 	// Is the player dead?
 	if (!gameObjects[0]->getIsAlive())
-		exit(0);
+		gameState++;
 
 	// Remove dead objects from each vector
 	gameObjects.erase(std::remove_if(gameObjects.begin(), gameObjects.end(), [](GameObject* obj) {return !obj->getIsAlive(); }), gameObjects.end());
 	dynamicUIObjects.erase(std::remove_if(dynamicUIObjects.begin(), dynamicUIObjects.end(), [](UIObject* obj) {return !obj->getIsAlive(); }), dynamicUIObjects.end());
 	MapObjects.erase(std::remove_if(MapObjects.begin(), MapObjects.end(), [](GameObject* obj) {return !obj->getIsAlive(); }), MapObjects.end());
+}
+
+void gameOverLoop(Window& window, Shader& shader, double deltaTime) {
+	// Clear background
+	window.clear(viewport_background_color_g);
+	shader.setUniformMat4("spriteTranslate", glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0)));
+	shader.setUniformMat4("spriteScale", glm::scale(glm::mat4(1.0f), glm::vec3(-1, -1, -1)));
+	shader.setUniform1i("hasSpriteSheet", false);
+
+	// Render Game Over Screen
+	float uiZoom = 2.0f;
+	glm::mat4 staticUIMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(uiZoom, uiZoom, uiZoom));
+	shader.setUniformMat4("viewMatrix", staticUIMatrix);
+	shader.setUniformMat4("transformationMatrix", glm::mat4(1.0f));
+	shader.setUniform4f("color_base", glm::vec4(0, 0, 0, 0));
+
+	// Bind the entities texture
+	glBindTexture(GL_TEXTURE_2D, tex[47]);
+
+	// Draw the entity
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+	// Check for continue
+	if (continueKey()) {
+		gameState++;
+	}
+
+	// Update other events like input handling
+	glfwPollEvents();
+
+	// Push buffer drawn in the background onto the display
+	glfwSwapBuffers(window.getWindow());
 }
 
 void playerRelocate(PlayerGameObject* player) {
@@ -767,7 +839,15 @@ int main(void){
 
 		// Run the main loop
 		double lastTime = glfwGetTime();
-		while (!glfwWindowShouldClose(window.getWindow())) {
+		while (!glfwWindowShouldClose(window.getWindow()) && gameState == 0) { // Start Screen
+			// Calculate delta time
+			double currentTime = glfwGetTime();
+			double deltaTime = currentTime - lastTime;
+			lastTime = currentTime;
+
+			startScreenLoop(window, shader, deltaTime);
+		}
+		while (!glfwWindowShouldClose(window.getWindow()) && gameState == 1) { // Game Loop
 			
 			// Calculate delta time
 			double currentTime = glfwGetTime();
@@ -775,6 +855,14 @@ int main(void){
 			lastTime = currentTime;
 
 			gameLoop(window, shader, deltaTime);
+		}
+		while (!glfwWindowShouldClose(window.getWindow()) && gameState == 2) { // Game Over
+			// Calculate delta time
+			double currentTime = glfwGetTime();
+			double deltaTime = currentTime - lastTime;
+			lastTime = currentTime;
+
+			gameOverLoop(window, shader, deltaTime);
 		}
 	}
 	catch (std::exception &e){

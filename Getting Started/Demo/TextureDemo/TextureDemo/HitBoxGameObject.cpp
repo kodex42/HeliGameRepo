@@ -1,6 +1,7 @@
 #include "HitBoxGameObject.h"
 
 HitBoxGameObject::HitBoxGameObject(glm::vec3& entityPos, GLuint entityTexture, GLint entityNumElements, float ttl) : GameObject(entityPos, entityTexture, entityNumElements), lifeSpan(ttl) {
+	display = false;
 }
 
 void HitBoxGameObject::update(double deltaTime) {
@@ -12,11 +13,13 @@ void HitBoxGameObject::update(double deltaTime) {
 }
 
 void HitBoxGameObject::render(Shader& shader) {
-	// Bind the entities texture
-	glBindTexture(GL_TEXTURE_2D, texture);
+	if (display) {
+		// Bind the entities texture
+		glBindTexture(GL_TEXTURE_2D, texture);
 
-	transform(shader);
+		transform(shader);
 
-	// Draw the entity : Uncomment to show hitboxes
-	glDrawElements(GL_TRIANGLES, numElements, GL_UNSIGNED_INT, 0);
+		// Draw the entity : Uncomment to show hitboxes
+		glDrawElements(GL_TRIANGLES, numElements, GL_UNSIGNED_INT, 0);
+	}
 }

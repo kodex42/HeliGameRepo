@@ -13,4 +13,5 @@ public:
 
 private:
 	float lifeSpan;
+	bool  display;
 };
