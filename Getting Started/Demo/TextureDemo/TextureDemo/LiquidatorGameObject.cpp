@@ -35,6 +35,7 @@ void LiquidatorGameObject::render(Shader& shader) {
 	glm::mat4 transformationMatrix = translationMatrix * rotationMatrix * scaleMatrix;
 	//transformationMatrix = rotationMatrix * translationMatrix  * scaleMatrix;
 	shader.setUniformMat4("transformationMatrix", transformationMatrix);
+	shader.setUniform4f("color_base", glm::vec4(0,0,0,0));
 
 	// Draw the entity
 	glDrawElements(GL_TRIANGLES, numElements, GL_UNSIGNED_INT, 0);

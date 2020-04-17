@@ -152,6 +152,30 @@ void PlayerGameObject::render(Shader &shader) {
 
 	glm::mat4 playerTransformation = playerDamageOffset * playerTranslation * playerRotation * playerScale;
 	glm::vec4 colorBase;
+
+	// ---------- DRAW PLAYER ----------
+	// Invincibility Rainbow Effect
+	colorBase = lastTimeMadeInvincible + timeMadeInvincible > time ? glm::vec4(pow(cos(time * 2), 2), pow(sin(time * 2), 2), pow(tan(time * 2) / 2, 2), 1) : glm::vec4(0, 0, 0, 0);
+	shader.setUniform4f("color_base", colorBase);
+
+	// Bind the entities texture
+	glBindTexture(GL_TEXTURE_2D, texture);
+	shader.setUniformMat4("transformationMatrix", playerTransformation);
+	// Draw the entity
+	glDrawElements(GL_TRIANGLES, numElements, GL_UNSIGNED_INT, 0);
+
+	// ---------- DRAW PROPELLOR ----------
+	glm::mat4 propellorTranslation = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0.6f, 0));
+	glm::mat4 propellorRotation = glm::rotate(glm::mat4(1.0f), (float)fmod(time * 2000, 360), glm::vec3(0, 1, 0));
+	glm::mat4 propellorScale = glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 1.0f));
+	glm::mat4 propellorTransformation = playerTransformation * propellorTranslation * propellorRotation * propellorScale;
+
+	// Bind the entities texture
+	glBindTexture(GL_TEXTURE_2D, *extraTextures[4]);
+	shader.setUniformMat4("transformationMatrix", propellorTransformation);
+	// Draw the entity
+	glDrawElements(GL_TRIANGLES, numElements, GL_UNSIGNED_INT, 0);
+
 	// ---------- DRAW WEAPON ----------
 	if (numWeapons > 0) {
 		int texIndex = 0;
@@ -191,27 +215,4 @@ void PlayerGameObject::render(Shader &shader) {
 		// Draw the entity
 		glDrawElements(GL_TRIANGLES, numElements, GL_UNSIGNED_INT, 0);
 	}
-
-	// Invincibility Rainbow Effect
-	colorBase = lastTimeMadeInvincible + timeMadeInvincible > time ? glm::vec4(pow(cos(time * 2), 2), pow(sin(time * 2), 2), pow(tan(time * 2) / 2, 2), 1) : glm::vec4(0, 0, 0, 0);
-	shader.setUniform4f("color_base", colorBase);
-
-	// ---------- DRAW PLAYER ----------
-	// Bind the entities texture
-	glBindTexture(GL_TEXTURE_2D, texture);
-	shader.setUniformMat4("transformationMatrix", playerTransformation);
-	// Draw the entity
-	glDrawElements(GL_TRIANGLES, numElements, GL_UNSIGNED_INT, 0);
-
-	// ---------- DRAW PROPELLOR ----------
-	glm::mat4 propellorTranslation = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0.6f, 0));
-	glm::mat4 propellorRotation = glm::rotate(glm::mat4(1.0f), (float)fmod(time*2000, 360), glm::vec3(0, 1, 0));
-	glm::mat4 propellorScale = glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 1.0f));
-	glm::mat4 propellorTransformation = playerTransformation * propellorTranslation * propellorRotation * propellorScale;
-
-	// Bind the entities texture
-	glBindTexture(GL_TEXTURE_2D, *extraTextures[4]);
-	shader.setUniformMat4("transformationMatrix", propellorTransformation);
-	// Draw the entity
-	glDrawElements(GL_TRIANGLES, numElements, GL_UNSIGNED_INT, 0);
 }

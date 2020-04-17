@@ -209,7 +209,7 @@ void setup(void)
 
 	// Enable Alpha blending
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendFunc(GL_SRC_ALPHA, 1);
 
 	int size = 6;
 
